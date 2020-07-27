@@ -1,6 +1,8 @@
 # svinfer
 The Statistical Valid Inference (svinfer) is a Python package which provides statistical models with valid inference for analyzing privacy protected data where carefully calibrated noises are injected to protect individuals' information.
 
+Information regarding added noise is usually released together with a privacy protected data set. The structure of the noise usually remains the same if one selects a subset of the columns and/or a subset of the rows of privacy protected data. In contrast, the structure of the noise is likely to change if one aggregates privacy protected data (e.g. via the GROUP BY statement) after the noise is ingested. In the latter scenario, one needs to carefully derive the new distribution and variance of the noise and make a case-by-case decision on whether/how to apply the svinfer package. In cases where the noise variance is not constant across rows, the svinfer package should not be applied.
+
 ## Requirements
 svinfer requires
 * Python3 (>=3.7)
