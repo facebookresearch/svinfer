@@ -48,3 +48,16 @@ class DataFrameProcessor(AbstractProcessor):
         yty = y.T.dot(y)
 
         return n, xtx, xty, yty
+
+    def prepare_for_summary_statistics(self, columns):
+        """
+        Compute the 1st, 2nd, 3rd and 4th moments on the noisy data,
+        which will be used to compute the moments and other summary statistics
+        for the underlying non-noisy data.
+        :param columns: list of strings
+        :return: a map
+        """
+        moments = []
+        for col in columns:
+            moments.append([self.data[col].pow(i).mean() for i in range(1, 5)])
+        return moments

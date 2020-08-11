@@ -37,7 +37,17 @@ class AbstractProcessor(ABC):
         :param fit_intercept: bool
         Whether to include the intercept into the model.
         :return: a tuple with length 4.
-        It's elements are a scalar, an array with shape (k, k),
+        Its elements includes a scalar, an array with shape (k, k),
         an array with shape (k, ), and a scalar.
+        """
+        pass
+
+    @abstractmethod
+    def prepare_for_summary_statistics(self, columns):
+        """
+        :param columns: list of strings
+        Specify the column name of the features in the data
+        :return: an array with shape (k, 4)
+        Its elements are the 1st, 2nd, 3rd and 4th moments of the features specified in columns.
         """
         pass

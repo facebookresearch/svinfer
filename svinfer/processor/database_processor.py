@@ -68,3 +68,6 @@ class DatabaseProcessor(AbstractProcessor):
 
         n, xtx, xty, yty = QueryGenerator.split_query_result(x_columns, query_result)
         return n, xtx, xty, yty
+
+    def prepare_for_summary_statistics(self, columns):
+        pass
