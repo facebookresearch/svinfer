@@ -90,7 +90,7 @@ class QueryGenerator:
         return query
 
     @classmethod
-    def split_query_result(cls, x_columns, query_result):
+    def split_query_result_for_linear_regression(cls, x_columns, query_result):
         k = len(x_columns)
         n = query_result[0]
         yty = query_result[1]
@@ -106,3 +106,38 @@ class QueryGenerator:
         logging.info("matrix xtx is \n%s", xtx)
 
         return n, xtx, xty, yty
+
+    @classmethod
+    def generate_query_for_summary_statistics(
+        cls, columns, table_name, database=None
+    ):
+        cols = [sqlalchemy.Column(k, sqlalchemy.Float) for k in columns]
+        sqlalchemy.Table(
+            table_name,
+            sqlalchemy.MetaData(schema=database),
+            *cols,
+        )
+
+        items = []
+        for col in cols:
+            items.append(col)
+            for _ in range(3):
+                items.append(items[-1] * col)
+        avg_items = [sqlalchemy.func.avg(t) for t in items]
+
+        query = str(
+            sqlalchemy.select(columns=avg_items)
+            .compile(compile_kwargs={"literal_binds": True})
+        )
+        logging.info("query is \n%s", query)
+        return query
+
+    @classmethod
+    def split_query_result_for_summary_statistics(cls, columns, query_result):
+        k = len(columns)
+        moments = []
+        for i in range(k):
+            moments.append(query_result[4 * i : 4 * (i + 1)])
+
+        logging.info("moments for each columns are \n%s", moments)
+        return moments

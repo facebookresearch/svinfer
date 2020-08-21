@@ -66,8 +66,11 @@ class DatabaseProcessor(AbstractProcessor):
         data, _ = self._execute_query(query)
         query_result = np.array(data)[0]
 
-        n, xtx, xty, yty = QueryGenerator.split_query_result(x_columns, query_result)
+        n, xtx, xty, yty = QueryGenerator.split_query_result_for_linear_regression(x_columns, query_result)
         return n, xtx, xty, yty
 
     def prepare_for_summary_statistics(self, columns):
-        pass
+        query = QueryGenerator.generate_query_for_summary_statistics(columns, self.table_name)
+        data, _ = self._execute_query(query)
+        query_result = np.array(data)[0]
+        return QueryGenerator.split_query_result_for_summary_statistics(columns, query_result)
