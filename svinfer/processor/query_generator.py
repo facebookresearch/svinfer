@@ -124,9 +124,9 @@ class QueryGenerator:
             for _ in range(3):
                 items.append(items[-1] * col)
         avg_items = [sqlalchemy.func.avg(t) for t in items]
-
+        count_item = [sqlalchemy.func.count(1)]
         query = str(
-            sqlalchemy.select(columns=avg_items)
+            sqlalchemy.select(columns=avg_items+count_item)
             .compile(compile_kwargs={"literal_binds": True})
         )
         logging.info("query is \n%s", query)
@@ -138,6 +138,6 @@ class QueryGenerator:
         moments = []
         for i in range(k):
             moments.append(query_result[4 * i : 4 * (i + 1)])
-
+        n = query_result[-1]
         logging.info("moments for each columns are \n%s", moments)
-        return moments
+        return moments, n

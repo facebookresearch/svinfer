@@ -59,5 +59,6 @@ class DataFrameProcessor(AbstractProcessor):
         """
         moments = []
         for col in columns:
-            moments.append([self.data[col].pow(i).mean() for i in range(1, 5)])
-        return moments
+            moments.append(np.array([self.data[col].pow(i).mean() for i in range(1, 5)]))
+        n = self.data.shape[0]
+        return moments, n

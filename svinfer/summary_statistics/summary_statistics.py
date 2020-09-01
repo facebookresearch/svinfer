@@ -21,9 +21,10 @@ from ..processor.abstract_processor import AbstractProcessor
 
 
 class SummaryStatisticsForOneColumn:
-    def __init__(self, x_moments, s2):
+    def __init__(self, x_moments, s2, n):
         self.x_moments = x_moments
         self.s2 = s2
+        self.n = n
 
     def estimate_moments(self, x_moments):
         """
@@ -43,9 +44,9 @@ class SummaryStatisticsForOneColumn:
         z_moments = linalg.solve(a, b)
         return z_moments
 
-    def estimate_summary_statistics(self):
+    def estimate_summary_statistics(self, bias=True):
         """
-        Compute standard mean, sample standard deviation, sample skewness and sample kortosis
+        Compute standard mean, sample standard deviation, sample skewness and sample kurtosis
         given the sample moments of the noisy data and the sample size
         """
         mu1, mu2, mu3, mu4 = self.estimate_moments(self.x_moments)
@@ -60,12 +61,17 @@ class SummaryStatisticsForOneColumn:
         # warning: this estimation approach cannot guarantee that the sample std is positive.
         if central_mu2 < 0:
             logging.warning("the estimated central moment is negative!")
-        standard_deviation = np.sqrt(central_mu2)
+        # compute standard deviation with df correction
+        standard_deviation = np.sqrt(central_mu2 * self.n / (self.n - 1))
         # compute skewness via method of moments
-        skewness = central_mu3 / standard_deviation ** 3
-        # compute kortosis via method of moments
-        kortosis = central_mu4 / standard_deviation ** 4
-        return average, standard_deviation, skewness, kortosis
+        skewness = central_mu3 / central_mu2 ** 1.5
+        if not bias:
+            skewness *= np.sqrt((self.n - 1.0) * self.n) / (self.n - 2.0)
+        # compute kurtosis via method of moments
+        kurtosis = central_mu4 / central_mu2 ** 2
+        if not bias:
+            kurtosis = 1.0 / (self.n - 2.0) / (self.n - 3.0) * ((self.n ** 2 - 1) * kurtosis - 3.0 * (self.n - 1) ** 2) + 3
+        return average, standard_deviation, skewness, kurtosis
 
 
 class SummaryStatistics:
@@ -77,15 +83,15 @@ class SummaryStatistics:
         logging.info("data is an instance of %s", type(data))
         return data.prepare_for_summary_statistics(self.columns)
 
-    def estimate_summary_statistics(self, data):
-        x_moments = self._preprocess_data(data)
+    def estimate_summary_statistics(self, data, bias=True):
+        x_moments, n = self._preprocess_data(data)
         tmp = []
         for i in range(len(self.columns)):
             summary_for_one_col = SummaryStatisticsForOneColumn(
-                x_moments[i], self.x_s2[i]
-            ).estimate_summary_statistics()
+                x_moments[i], self.x_s2[i], n
+            ).estimate_summary_statistics(bias)
             tmp.append(summary_for_one_col)
         return pd.DataFrame(
             data=tmp,
-            columns=["average", "standard_deviation", "skewness", "kortosis"],
+            columns=["average", "standard_deviation", "skewness", "kurtosis"],
             index=self.columns)
