@@ -16,41 +16,16 @@
 import unittest
 
 import numpy as np
-import pandas as pd
 import sqlite3
 
 from ..linear_model.linear_regression import LinearRegression
 from ..processor.dataframe_processor import DataFrameProcessor
 from ..processor.database_processor import DatabaseProcessor
-
+from .utilities import check_if_almost_equal, simulate_test_data
 
 class TestLinearRegression(unittest.TestCase):
     def setUp(self):
-        """
-        A simulation setting from Paper https://gking.harvard.edu/dpd
-        The z1, z2 are features,
-        while x1, x2 are features with designed noise;
-        The response y is the generated based on z1, z2.
-        """
-        n = 100000
-        np.random.seed(0)
-        z1 = np.random.poisson(lam=7, size=n)
-        z2 = np.random.poisson(lam=9, size=n) + (2 * z1)
-        self.data = pd.DataFrame(
-            {
-                "y": 10
-                + (12 * z1)
-                - (3 * z2)
-                + (2 * np.random.standard_normal(size=n)),
-                "z1": z1,
-                "z2": z2,
-                "x1": z1 + np.random.standard_normal(size=n) * 2.0,
-                "x2": z2 + np.random.standard_normal(size=n) * 1.0,
-            }
-        )
-
-    def _check_if_almost_equal(self, x1, x2, tolerance=1e-6):
-        return np.abs(x1 - x2).max() < tolerance
+        self.data = simulate_test_data()
 
     def test_on_clear_data(self):
         """
@@ -66,10 +41,11 @@ class TestLinearRegression(unittest.TestCase):
             .beta
         )
         self.assertTrue(
-            self._check_if_almost_equal(
+            check_if_almost_equal(
                 result,
                 np.array([10.018132113216382, 11.994724266890941, -2.9988864645685593]),
-                tolerance=1e-12,
+                absolute_tolerance=1e-12,
+                relative_tolerance=1e-12,
             )
         )
 
@@ -93,17 +69,18 @@ class TestLinearRegression(unittest.TestCase):
             random_state=1,
         ).fit(df_data)
         self.assertTrue(
-            self._check_if_almost_equal(
+            check_if_almost_equal(
                 model.beta,
                 np.array([10.077380244481004, 11.988784655257064, -3.002691057441349]),
-                tolerance=1e-8,
+                absolute_tolerance=1e-12,
+                relative_tolerance=1e-8,
             )
         )
         self.assertTrue(
-            self._check_if_almost_equal(model.sigma_sq, 2.892436195392406, 1e-8)
+            check_if_almost_equal(model.sigma_sq, 2.892436195392406, 1e-8)
         )
         self.assertTrue(
-            self._check_if_almost_equal(
+            check_if_almost_equal(
                 model.beta_vcov,
                 np.array(
                     [
@@ -124,7 +101,8 @@ class TestLinearRegression(unittest.TestCase):
                         ],
                     ]
                 ),
-                tolerance=1e-3,
+                absolute_tolerance=1e-12,
+                relative_tolerance=1e-2,
             )
         )
 
@@ -147,9 +125,10 @@ class TestLinearRegression(unittest.TestCase):
 
         for i in range(4):
             self.assertTrue(
-                self._check_if_almost_equal(
+                check_if_almost_equal(
                     df_result[i], db_result[i],
-                    tolerance=1e-6,
+                    absolute_tolerance=1e-12,
+                    relative_tolerance=1e-12,
                 )
             )
 
