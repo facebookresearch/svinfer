@@ -120,7 +120,7 @@ class QueryGenerator:
 
         items = []
         for col in cols:
-            items.append(col)
+            items.append(1.0 * col)
             for _ in range(3):
                 items.append(items[-1] * col)
         avg_items = [sqlalchemy.func.avg(t) for t in items]
