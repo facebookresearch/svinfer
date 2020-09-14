@@ -75,23 +75,26 @@ class SummaryStatisticsForOneColumn:
 
 
 class SummaryStatistics:
-    def __init__(self, columns, x_s2):
-        self.columns = columns
+    def __init__(self, x_columns, x_s2, bias=True):
+        self.x_columns = x_columns
         self.x_s2 = x_s2
+        self.bias = bias
+        self.summary_statistics = None
 
     def _preprocess_data(self, data: AbstractProcessor):
         logging.info("data is an instance of %s", type(data))
-        return data.prepare_for_summary_statistics(self.columns)
+        return data.prepare_for_summary_statistics(self.x_columns)
 
-    def estimate_summary_statistics(self, data, bias=True):
+    def estimate_summary_statistics(self, data):
         x_moments, n = self._preprocess_data(data)
         tmp = []
-        for i in range(len(self.columns)):
+        for i in range(len(self.x_columns)):
             summary_for_one_col = SummaryStatisticsForOneColumn(
                 x_moments[i], self.x_s2[i], n
-            ).estimate_summary_statistics(bias)
+            ).estimate_summary_statistics(self.bias)
             tmp.append(summary_for_one_col)
-        return pd.DataFrame(
+        self.summary_statistics = pd.DataFrame(
             data=tmp,
             columns=["average", "standard_deviation", "skewness", "kurtosis"],
-            index=self.columns)
+            index=self.x_columns)
+        return self

@@ -40,7 +40,7 @@ class TestSummaryStatistics(unittest.TestCase):
         # version 1: does not correct bias in skewness and kurtosis
         estimator1 = SummaryStatistics(
             ["z1", "z2"], [0, 0]
-        ).estimate_summary_statistics(df_data)
+        ).estimate_summary_statistics(df_data).summary_statistics
         truth1 = pd.DataFrame(
             {
                 "average": self.data[["z1", "z2"]].mean(),
@@ -68,8 +68,8 @@ class TestSummaryStatistics(unittest.TestCase):
 
         # version 2: correct bias in skewness and kurtosis
         estimator2 = SummaryStatistics(
-            ["z1", "z2"], [0, 0]
-        ).estimate_summary_statistics(df_data, bias=False)
+            ["z1", "z2"], [0, 0], bias=False
+        ).estimate_summary_statistics(df_data).summary_statistics
         truth2 = pd.DataFrame(
             {
                 "average": self.data[["z1", "z2"]].mean(),
@@ -107,7 +107,7 @@ class TestSummaryStatistics(unittest.TestCase):
         df_data = DataFrameProcessor(self.data)
         estimator = SummaryStatistics(
             ["x1", "x2"], [2.0 ** 2, 1.0 ** 2]
-        ).estimate_summary_statistics(df_data)
+        ).estimate_summary_statistics(df_data).summary_statistics
         truth = pd.DataFrame(
             {
                 "average": self.data[["z1", "z2"]].mean(),
