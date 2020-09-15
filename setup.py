@@ -28,6 +28,7 @@ if __name__ == "__main__":
             "svinfer",
             "svinfer.linear_model",
             "svinfer.processor",
+            "svinfer.summary_statistics",
         ],
         python_requires=">=3.6",
         classifiers=["Programming Language :: Python :: 3"],
