@@ -15,7 +15,7 @@
 
 import numpy as np
 import pandas as pd
-
+from scipy import stats, special
 
 def simulate_test_data(n = 100000, seed=0):
     """
@@ -37,6 +37,7 @@ def simulate_test_data(n = 100000, seed=0):
             "z2": z2,
             "x1": z1 + np.random.standard_normal(size=n) * 2.0,
             "x2": z2 + np.random.standard_normal(size=n) * 1.0,
+            "y_binary": stats.bernoulli.rvs(special.expit(1 + 2 * z1 - 0.5 * z2)),
         }
     )
 
