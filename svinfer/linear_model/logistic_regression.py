@@ -54,6 +54,10 @@ class LogisticRegression:
 
     @staticmethod
     def _jacobian(beta, y, x, x_s2):
+        """
+        the element at the i-th row and the j-th column is the partial derivative
+        of the i-th component in _score(...) with respect to the j-th component in beta
+        """
         n, p = x.shape
         c = x + np.outer(y - 0.5, x_s2 * beta)
         p = 1.0 / (1 + np.exp(-c.dot(beta)))
@@ -74,7 +78,15 @@ class LogisticRegression:
             args=(y, x, x_s2),
             method='lm',
             jac=LogisticRegression._jacobian)
-        return model.x, model.success
+        beta_est = model.x
+        success = model.success
+        check_model = LogisticRegression._score(beta_est, y, x, x_s2)
+        if (abs(check_model) > 1e-6).any():
+            logging.warning(
+                f"score(beta_est) is {check_model}, which is not close to zero as expected! "
+                + "optimization does not converge!")
+            success = False
+        return beta_est, success
 
     @staticmethod
     def _get_covariance(x, y, x_s2, beta):
@@ -83,7 +95,7 @@ class LogisticRegression:
         var_est = score_est.dot(score_est.T) / n
         j_est = LogisticRegression._jacobian(beta, y, x, x_s2)
         j_est_inv = np.linalg.inv(j_est)
-        return j_est_inv.T.dot(var_est).dot(j_est_inv) / n
+        return j_est_inv.dot(var_est).dot(j_est_inv.T) / n
 
     def fit(self, data):
         x = data[self.x_columns].values

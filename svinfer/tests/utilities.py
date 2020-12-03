@@ -41,6 +41,38 @@ def simulate_test_data(n = 100000, seed=0):
         }
     )
 
+def simulate_test_data_misspecified_model(n=100000, seed=123):
+    """
+    A simulation setting with mis-specified model
+        The non-noisy and correctly specified model is y_binary ~ z1_squared + z2_squared
+        The non-noisy and misspecfied model is y_binary ~ z1 + z2
+        The noisy and correctly specified model is y_binary ~ x1_xsquared + x2_squared,
+        where the variance of the ingested noise to predictors are [1, 4].
+
+    The non-noisy model, no matter whether the model is misspecified or not, the svinfer
+    and the statsmodels should return similar point estimator and inference (included in
+    this unit test).
+
+    The noisy model, when the model is correctly specified, the svinfer should return
+    point estimator which is similar to the underlying true coefficients (included in this
+    unit test), and vcov matrix which is close to the Monte Carlo standard deviation (not
+    included in this unit test).
+    """
+    np.random.seed(seed)
+    z1 = np.random.normal(loc=1, scale=0.5, size=n)
+    z2 = np.random.normal(loc=0.5, scale=1, size=n)
+    return pd.DataFrame(
+        {
+            "z1": z1,
+            "z2": z2,
+            "z1_squared": z1 ** 2,
+            "z2_squared": z2 ** 2,
+            "x1_squared": z1 ** 2 + np.random.standard_normal(size=n) * 1,
+            "x2_squared": z2 ** 2 + np.random.standard_normal(size=n) * 2,
+            "y_binary": stats.bernoulli.rvs(special.expit(1 + 2 * z1 ** 2 - 0.5 * z2 ** 2))
+        }
+    )
+
 def check_if_almost_equal(x1, x2, absolute_tolerance=1e-12, relative_tolerance=1e-12):
     # logic: absolute(x1 - x2) <= (absolute_tolerance + relative_tolerance * absolute(x2))
     return np.isclose(x1, x2, rtol=relative_tolerance, atol=absolute_tolerance).all()
