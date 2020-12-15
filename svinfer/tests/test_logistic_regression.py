@@ -14,10 +14,12 @@
 # limitations under the License.
 
 import unittest
-
+import math
+import numpy as np
+import sqlite3
 import statsmodels.api as sm
 
-from ..processor.commons import DataFrameProcessor
+from ..processor.commons import DataFrameProcessor, DatabaseProcessor
 from ..linear_model.logistic_regression import LogisticRegression
 from .utilities import (
     check_if_almost_equal,
@@ -88,6 +90,78 @@ class Wrapper:
             model = LogisticRegression(
                 self.predictors_noisy, self.response, self.x_s2
             ).fit(DataFrameProcessor(self.data))
+            beta, se = model.beta, model.beta_standarderror
+            ci_lower = beta - 1.96 * se
+            ci_upper = beta + 1.96 * se
+
+            self.assertTrue(
+                ((ci_lower < self.beta_true) & (self.beta_true < ci_upper)).all()
+            )
+
+        def test_compare_score_jacobian_between_database_and_dataframe(self):
+            """
+            When applied to the same training data and the same beta,
+            the score and jacobian are expected to be identical between the
+            database version and the dataframe version.
+            """
+            # dataframe version
+            df_data = DataFrameProcessor(self.data)
+            df_x, df_y = df_data.prepare_xy(self.predictors_noisy, self.response)
+            df_score, df_jacobian = LogisticRegression._score(
+                np.array(self.beta_true),
+                df_x,
+                df_y,
+                np.array([0.0] + self.x_s2),
+                df_data.run_query
+            )
+
+            # database version
+            conn = sqlite3.connect(":memory:")
+            conn.create_function('EXP', 1, math.exp)
+            self.data.to_sql("db_data", conn)
+            db_data = DatabaseProcessor(conn, "db_data")
+            db_x, db_y = db_data.prepare_xy(self.predictors_noisy, self.response)
+            db_score, db_jacobian = LogisticRegression._score(
+                np.array(self.beta_true),
+                db_x,
+                db_y,
+                np.array([0.0] + self.x_s2),
+                db_data.run_query
+            )
+
+            # compare
+            self.assertTrue(
+                check_if_almost_equal(
+                    db_score,
+                    df_score,
+                    absolute_tolerance=1e-12,
+                    relative_tolerance=1e-12,
+                )
+            )
+            self.assertTrue(
+                check_if_almost_equal(
+                    db_jacobian,
+                    df_jacobian,
+                    absolute_tolerance=1e-12,
+                    relative_tolerance=1e-12,
+                )
+            )
+
+        def test_database_version(self):
+            """
+            When applied to noisy data, the svinfer's LogisticRegression
+            is expected to provide confidence interval that covers the truth
+            in most of the time.
+            """
+            # prepare database environment
+            conn = sqlite3.connect(":memory:")
+            conn.create_function('EXP', 1, math.exp)
+            self.data.to_sql("db_data", conn)
+
+            # fit model
+            model = LogisticRegression(
+                self.predictors_noisy, self.response, self.x_s2
+            ).fit(DatabaseProcessor(conn, "db_data"))
             beta, se = model.beta, model.beta_standarderror
             ci_lower = beta - 1.96 * se
             ci_upper = beta + 1.96 * se

@@ -17,8 +17,9 @@ import abc
 import logging
 import numpy as np
 import pandas as pd
+import sqlalchemy
 
-from .matrix import NumpyMatrix
+from .matrix import NumpyMatrix, SqlMatrix
 
 class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
@@ -54,3 +55,29 @@ class DataFrameProcessor(AbstractProcessor):
 
     def run_query(self, query):
         pass
+
+
+class DatabaseProcessor(AbstractProcessor):
+    def __init__(self, connection, table_name):
+        self.connection = connection
+        self.table_name = table_name
+
+    def run_query(self, query):
+        df = pd.read_sql(query, self.connection)
+        return df.values[0, :]
+
+    def prepare_xy(self, x_columns, y_column, fit_intercept=True):
+        x_columns = [sqlalchemy.Column(j, sqlalchemy.FLOAT) for j in x_columns]
+        y_column = sqlalchemy.Column(y_column, sqlalchemy.FLOAT)
+        sqlalchemy.Table(
+            self.table_name, sqlalchemy.MetaData(), y_column, *x_columns
+        )
+        need = [y_column.label("y")]
+        if fit_intercept:
+            need.append(sqlalchemy.literal(1.0).label("x0"))
+        for i in range(len(x_columns)):
+            need.append(x_columns[i].label("x" + str(i + 1)))
+        work = sqlalchemy.select(need)
+        y_part = list(work.columns)[:1]
+        x_part = list(work.columns)[1:]
+        return SqlMatrix(x_part), SqlMatrix(y_part)
