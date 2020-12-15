@@ -17,6 +17,7 @@ import unittest
 
 import statsmodels.api as sm
 
+from ..processor.commons import DataFrameProcessor
 from ..linear_model.logistic_regression import LogisticRegression
 from .utilities import (
     check_if_almost_equal,
@@ -45,7 +46,7 @@ class Wrapper:
             # fit by svinfer
             svinfer_model = LogisticRegression(
                 self.predictors_clear, self.response, [0] * len(self.predictors_clear)
-            ).fit(self.data)
+            ).fit(DataFrameProcessor(self.data))
             svinfer_beta = svinfer_model.beta
             svinfer_vcov = svinfer_model.beta_vcov
 
@@ -86,7 +87,7 @@ class Wrapper:
             """
             model = LogisticRegression(
                 self.predictors_noisy, self.response, self.x_s2
-            ).fit(self.data)
+            ).fit(DataFrameProcessor(self.data))
             beta, se = model.beta, model.beta_standarderror
             ci_lower = beta - 1.96 * se
             ci_upper = beta + 1.96 * se

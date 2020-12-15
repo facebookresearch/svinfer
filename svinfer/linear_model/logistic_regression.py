@@ -16,7 +16,9 @@
 import logging
 import numpy as np
 from scipy import optimize
-from sklearn.linear_model import LogisticRegression as NaiveLogisticRegression
+
+from ..processor.matrix import get_result
+from ..processor.commons import AbstractProcessor
 
 
 class LogisticRegression:
@@ -35,7 +37,9 @@ class LogisticRegression:
     ):
         self.x_columns = x_columns
         self.y_column = y_column
-        self.x_s2 = ([0.0] if fit_intercept else []) + x_s2
+        self.x_s2 = np.array(
+            [0.0] + x_s2 if fit_intercept else x_s2
+        )
         self.fit_intercept = fit_intercept
 
         self.success = None
@@ -44,68 +48,78 @@ class LogisticRegression:
         self.beta_standarderror = None
 
     @staticmethod
-    def _score_all(beta, y, x, x_s2):
-        c = x + np.outer(y - 0.5, x_s2 * beta)
-        return c.T * (y - 1.0 / (1 + np.exp(-c.dot(beta))))
+    def _score(beta, x, y, x_s2, query_runner):
+        c = x + (y - 0.5).outer(x_s2 * beta)
+        score = c * (y - 1.0 / (1.0 + (-c.dot(beta)).exp()))
+        p = 1.0 / (1 + (-c.dot(beta)).exp())
+        term1_part = (y - p) * (y - 0.5)
+        term2_part = c * (p * (1 - p) * (y - 0.5))
+        term3_part = (c * (p * (1 - p))).cross(c)
+        z = get_result({
+            "score": score,
+            "term1_part": term1_part,
+            "term2_part": term2_part,
+            "term3_part": term3_part,
+        }, query_runner)
+        score = z["score"]
+        term1 = z["term1_part"] * np.diag(x_s2)
+        term2 = np.outer(z["term2_part"], x_s2 * beta)
+        term3 = z["term3_part"]
+        jacobian = term1 - term2 - term3
+        return score, jacobian
 
     @staticmethod
-    def _score(beta, y, x, x_s2):
-        return np.mean(LogisticRegression._score_all(beta, y, x, x_s2), axis=1)
+    def _meat(beta, x, y, x_s2, query_runner):
+        c = x + (y - 0.5).outer(x_s2 * beta)
+        score = c * (y - 1.0 / (1.0 + (-c.dot(beta)).exp()))
+        meat = score.cross(score)
+        z = get_result({
+            "meat": meat,
+        }, query_runner)
+        meat = z["meat"]
+        sample_size = z["sample_size"]
+        return meat, sample_size
 
     @staticmethod
-    def _jacobian(beta, y, x, x_s2):
-        """
-        the element at the i-th row and the j-th column is the partial derivative
-        of the i-th component in _score(...) with respect to the j-th component in beta
-        """
-        n, p = x.shape
-        c = x + np.outer(y - 0.5, x_s2 * beta)
-        p = 1.0 / (1 + np.exp(-c.dot(beta)))
-        term1 = np.mean((y - p) * (y - 0.5)) * np.diag(x_s2)
-        term2_stag = np.mean(c.T * p * (1 - p) * (y - 0.5), axis=1)
-        term2 = np.outer(term2_stag, beta) * x_s2
-        term3 = (c.T * p * (1 - p)).dot(c) / n
-        return term1 - term2 - term3
-
-    @staticmethod
-    def _get_coefficients(x, y, x_s2):
-        naive_model = NaiveLogisticRegression(
-            fit_intercept=False, penalty='none', random_state=0).fit(x, y)
-        initial_value = naive_model.coef_
-        model = optimize.root(
+    def _get_coefficients(x, y, x_s2, query_runner):
+        naive = optimize.root(
             LogisticRegression._score,
-            initial_value,
-            args=(y, x, x_s2),
-            method='lm',
-            jac=LogisticRegression._jacobian)
-        beta_est = model.x
-        success = model.success
-        check_model = LogisticRegression._score(beta_est, y, x, x_s2)
-        if (abs(check_model) > 1e-6).any():
-            logging.warning(
-                f"score(beta_est) is {check_model}, which is not close to zero as expected! "
-                + "optimization does not converge!")
-            success = False
+            np.zeros(x_s2.shape),
+            args=(x, y, np.zeros(x_s2.shape), query_runner),
+            method="lm",
+            jac=True)
+        if naive.success:
+            initial = naive.x
+        else:
+            initial = np.zeros(x_s2.shape)
+        final = optimize.root(
+            LogisticRegression._score,
+            initial,
+            args=(x, y, x_s2, query_runner),
+            method="lm",
+            jac=True)
+        beta_est = final.x
+        success = final.success
         return beta_est, success
 
     @staticmethod
-    def _get_covariance(x, y, x_s2, beta):
-        n = x.shape[0]
-        score_est = LogisticRegression._score_all(beta, y, x, x_s2)
-        var_est = score_est.dot(score_est.T) / n
-        j_est = LogisticRegression._jacobian(beta, y, x, x_s2)
-        j_est_inv = np.linalg.inv(j_est)
-        return j_est_inv.dot(var_est).dot(j_est_inv.T) / n
+    def _get_covariance(beta, x, y, x_s2, query_runner):
+        meat, n = LogisticRegression._meat(beta, x, y, x_s2, query_runner)
+        jacobian = LogisticRegression._score(beta, x, y, x_s2, query_runner)[1]
+        bread = np.linalg.inv(jacobian)
+        return bread.dot(meat).dot(bread.T) / n
 
     def fit(self, data):
-        x = data[self.x_columns].values
-        if self.fit_intercept:
-            x = np.insert(x, 0, 1.0, axis=1)
-        y = data[self.y_column].values
-        beta_est, success = LogisticRegression._get_coefficients(x, y, self.x_s2)
+        assert isinstance(data, AbstractProcessor)
+        x, y = data.prepare_xy(self.x_columns, self.y_column, self.fit_intercept)
+        beta_est, success = LogisticRegression._get_coefficients(
+            x, y, self.x_s2, data.run_query
+        )
         if not success:
             logging.warning("optimization does not converge!")
-        var_est = LogisticRegression._get_covariance(x, y, self.x_s2, beta_est)
+        var_est = LogisticRegression._get_covariance(
+            beta_est, x, y, self.x_s2, data.run_query
+        )
         self.success = success
         self.beta = beta_est
         self.beta_vcov = var_est
