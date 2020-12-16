@@ -49,6 +49,21 @@ class LogisticRegression:
 
     @staticmethod
     def _score(beta, x, y, x_s2, query_runner):
+        """
+        score(beta) = avg_{i = 1}^{n} (y_i - p_i(beta)) c_i(beta)
+        where p_i(beta) = (1 + exp(-c_i(beta)^T beta))^{-1},
+        and c_i(beta) = x_i + (y_i - 0.5) diag(x_s2) beta.
+
+        For Jacobian, the element at the i-th row and the j-th column is
+        the partial derivative of the i-th component in score(beta)
+        with respect to the j-th component in beta.
+
+        jacobian(beta) = avg_{i = 1}^{n} (
+            (y_i - p_i(beta)) (y_i - 0.5) diag(x_s2)
+            - p_i(beta) (1 - pi(beta)) (y_i - 0.5) c_i(beta) beta^T diag(x_s2)
+            - p_i(beta) (1 - pi(beta)) c_i(beta) c_i(beta)^T
+        )
+        """
         c = x + (y - 0.5).outer(x_s2 * beta)
         score = c * (y - 1.0 / (1.0 + (-c.dot(beta)).exp()))
         p = 1.0 / (1 + (-c.dot(beta)).exp())

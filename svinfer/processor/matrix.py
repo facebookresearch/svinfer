@@ -66,14 +66,29 @@ class AbstractMatrix(abc.ABC):
 
     @abc.abstractmethod
     def dot(self, b):
+        """
+        self b,
+        where self is n by k, b is a numpy array with shape (k,),
+        and the result is n by 1.
+        """
         return NotImplemented
 
     @abc.abstractmethod
     def outer(self, b):
+        """
+        self b^T,
+        where self is n by 1, b is a numpy array with shape (k,),
+        and the result is n by k.
+        """
         return NotImplemented
 
     @abc.abstractmethod
     def cross(self, other):
+        """
+        self^T other,
+        where self is n by p, other is n by q,
+        and the result is p by q.
+        """
         return NotImplemented
 
     @abc.abstractmethod
