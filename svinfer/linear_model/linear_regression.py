@@ -16,7 +16,9 @@
 import logging
 
 import numpy as np
-from ..processor.abstract_processor import AbstractProcessor
+from ..processor.commons import AbstractProcessor
+from ..processor.matrix import get_result
+
 
 
 class LinearRegressionCoefficients:
@@ -44,7 +46,7 @@ class LinearRegressionCoefficients:
         self.omega = None
 
     def estimate_beta(self):
-        self.omega = self.xtx / self.n
+        self.omega = self.xtx.copy()
         self.omega[np.diag_indices(self.k)] = np.diag(self.omega) - self.x_s2
 
         # check whether omega is positive-definite or not
@@ -54,9 +56,9 @@ class LinearRegressionCoefficients:
             eigenvalues.min() < eigenvalues.max() * self.k * np.finfo(np.float_).eps
         ):
             logging.warning("omega is not positive definite")
-            self.beta = np.linalg.lstsq(self.omega, self.xty / self.n, rcond=None)[0]
+            self.beta = np.linalg.lstsq(self.omega, self.xty, rcond=None)[0]
         else:
-            self.beta = np.linalg.solve(self.omega, self.xty / self.n)
+            self.beta = np.linalg.solve(self.omega, self.xty)
 
     def estimate_residual_var(self):
         if self.yty is None:
@@ -71,7 +73,7 @@ class LinearRegressionCoefficients:
             self.yty
             - 2 * self.beta.T.dot(self.xty)
             + self.beta.T.dot(self.xtx).dot(self.beta)
-        ) / df
+        ) * self.n / df
         term2 = (self.beta ** 2 * self.x_s2).sum()
         sigma_sq = term1 - term2
         # check whether variance is positive or not
@@ -122,19 +124,19 @@ class LinearRegressionVariance:
             + self.omega[j, m] * self.x_s2[k] * (k == l)
             + self.x_s2[k] * (k == l) * self.x_s2[j] * (j == m)
             + self.x_s2[k] * (k == m) * self.x_s2[j] * (j == l)
-        ) * self.n
+        ) / self.n
 
     def estimate_vcov_xy_xy(self, k, j):
         return (
-            self.n * self.sigma_sq * self.omega[k, j]
+            self.sigma_sq * self.omega[k, j]
             + self.x_s2[k] * (k == j) * self.yty
-        )
+        ) / self.n
 
     def estimate_vcov_xy_xx(self, k, j, m):
         return (
             self.x_s2[k] * (k == m) * self.xty[j]
             + self.x_s2[k] * (k == j) * self.xty[m]
-        )
+        ) / self.n
 
     def simulate_distribution(self):
         index = np.triu_indices(self.k)
@@ -230,7 +232,6 @@ class LinearRegression:
         Determines random number generation for dataset creation. Pass an
         int for reproducible output across multiple function calls.
         """
-        self._check_input(x_columns, y_column, x_s2)
         self.x_columns = x_columns
         self.y_column = y_column
         self.x_s2 = ([0.0] if fit_intercept else []) + x_s2
@@ -244,24 +245,18 @@ class LinearRegression:
         self.beta_vcov = None
         self.beta_standarderror = None
 
-    def _check_input(self, x_columns, y_column, x_s2):
-        if not isinstance(x_columns, list) and any(
-            not isinstance(x, str) for x in x_columns
-        ):
-            raise ValueError("x_columns should be a list of strings")
-        if not isinstance(y_column, str):
-            raise ValueError("y_column should be a string")
-        if not isinstance(x_s2, list) and any(s2 < 0.0 for s2 in x_s2):
-            raise ValueError("x_s2 should be a list of non-negative values")
-        if len(x_s2) != len(x_columns):
-            raise ValueError("length of x_s2 doesn't match that of x_columns")
-
     def _preprocess_data(self, data: AbstractProcessor):
         logging.info("data is an instance of %s", type(data))
-        data.check_input(self.x_columns, self.y_column)
-        n, xtx, xty, yty = data.prepare_for_linear_regression(
-            self.x_columns, self.y_column, self.fit_intercept,
-        )
+        x, y = data.prepare_xy(self.x_columns, self.y_column, self.fit_intercept)
+        z = get_result({
+            "xtx": x.cross(x),
+            "xty": x.cross(y),
+            "yty": y.cross(y),
+        }, data.run_query)
+        n = z["sample_size"]
+        xtx = z["xtx"]
+        xty = z["xty"][:, 0]
+        yty = z["yty"][0, 0]
         return n, xtx, xty, yty
 
     def fit(self, data):

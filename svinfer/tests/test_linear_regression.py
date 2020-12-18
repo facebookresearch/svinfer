@@ -19,8 +19,7 @@ import numpy as np
 import sqlite3
 
 from ..linear_model.linear_regression import LinearRegression
-from ..processor.dataframe_processor import DataFrameProcessor
-from ..processor.database_processor import DatabaseProcessor
+from ..processor.commons import DataFrameProcessor, DatabaseProcessor
 from .utilities import check_if_almost_equal, simulate_test_data
 
 class TestLinearRegression(unittest.TestCase):
@@ -114,14 +113,28 @@ class TestLinearRegression(unittest.TestCase):
         which will further ensure the same linear model results.
         """
         df_data = DataFrameProcessor(self.data)
-        df_result = df_data.prepare_for_linear_regression(
-            ["x1", "x2"], "y", True)
+        df_result = LinearRegression(
+            ["x1", "x2"],
+            "y",
+            [2.0 ** 2, 1.0 ** 2],
+            fit_intercept=True,
+            df_corrected=True,
+            n_replications=50000,
+            random_state=1,
+        )._preprocess_data(df_data)
 
         connection = sqlite3.connect(":memory:")
         self.data.to_sql("db_data", con=connection)
         db_data = DatabaseProcessor(connection, "db_data")
-        db_result = db_data.prepare_for_linear_regression(
-            ["x1", "x2"], "y", True)
+        db_result = LinearRegression(
+            ["x1", "x2"],
+            "y",
+            [2.0 ** 2, 1.0 ** 2],
+            fit_intercept=True,
+            df_corrected=True,
+            n_replications=50000,
+            random_state=1,
+        )._preprocess_data(db_data)
 
         for i in range(4):
             self.assertTrue(
