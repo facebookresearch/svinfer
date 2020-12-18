@@ -61,9 +61,11 @@ class DataFrameProcessor(AbstractProcessor):
 
 
 class DatabaseProcessor(AbstractProcessor):
-    def __init__(self, connection, table_name):
+    def __init__(self, connection, table_name, database=None, filters=None):
         self.connection = connection
         self.table_name = table_name
+        self.database = database
+        self.filters = {} if filters is None else filters
 
     def run_query(self, query):
         df = pd.read_sql(query, self.connection)
@@ -72,15 +74,32 @@ class DatabaseProcessor(AbstractProcessor):
     def prepare_xy(self, x_columns, y_column, fit_intercept=True):
         x_columns = [sqlalchemy.Column(j, sqlalchemy.FLOAT) for j in x_columns]
         y_column = sqlalchemy.Column(y_column, sqlalchemy.FLOAT)
+        filters_columns = {}
+        if self.filters is not None:
+            for k in self.filters:
+                filters_columns[k] = sqlalchemy.Column(k, sqlalchemy.String)
+
         sqlalchemy.Table(
-            self.table_name, sqlalchemy.MetaData(), y_column, *x_columns
+            self.table_name,
+            sqlalchemy.MetaData(schema=self.database),
+            y_column,
+            *x_columns,
+            *filters_columns.values(),
         )
+
         need = [y_column.label("y")]
         if fit_intercept:
             need.append(sqlalchemy.literal(1.0).label("x0"))
         for i in range(len(x_columns)):
             need.append(x_columns[i].label("x" + str(i + 1)))
-        work = sqlalchemy.select(need)
+
+        where_clauses = (
+            [filters_columns[k].in_(self.filters[k]) for k in filters_columns.keys()]
+            if self.filters is not None
+            else []
+        )
+
+        work = sqlalchemy.select(need).where(sqlalchemy.and_(*where_clauses))
         y_part = list(work.columns)[:1]
         x_part = list(work.columns)[1:]
         return SqlMatrix(x_part), SqlMatrix(y_part)

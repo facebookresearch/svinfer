@@ -145,6 +145,51 @@ class TestLinearRegression(unittest.TestCase):
                 )
             )
 
+    def test_compare_database_and_dataframe_version_with_filter(self):
+        """
+        DatabaseProcessor and DataFrameProcessor should return
+        the same intermediate results for linear regression,
+        when giving the same training data,
+        which will further ensure the same linear model results.
+        """
+        filtered_data = self.data[(self.data["filter1"] == 1) & (self.data["filter2"] == 1)]
+        df_data = DataFrameProcessor(filtered_data)
+        df_result = LinearRegression(
+            ["x1", "x2"],
+            "y",
+            [2.0 ** 2, 1.0 ** 2],
+            fit_intercept=True,
+            df_corrected=True,
+            n_replications=50000,
+            random_state=1,
+        )._preprocess_data(df_data)
+
+        connection = sqlite3.connect(":memory:")
+        self.data.to_sql("db_data", con=connection)
+        db_data = DatabaseProcessor(
+            connection,
+            "db_data",
+            filters={"filter1": [1], "filter2": [1]}
+        )
+        db_result = LinearRegression(
+            ["x1", "x2"],
+            "y",
+            [2.0 ** 2, 1.0 ** 2],
+            fit_intercept=True,
+            df_corrected=True,
+            n_replications=50000,
+            random_state=1,
+        )._preprocess_data(db_data)
+
+        for i in range(4):
+            self.assertTrue(
+                check_if_almost_equal(
+                    df_result[i], db_result[i],
+                    absolute_tolerance=1e-12,
+                    relative_tolerance=1e-12,
+                )
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
