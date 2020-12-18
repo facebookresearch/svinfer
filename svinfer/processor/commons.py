@@ -35,6 +35,9 @@ class AbstractProcessor(abc.ABC):
         """
         pass
 
+    def prepare_x(self, x_columns):
+        return self.prepare_xy(x_columns, x_columns[0], False)[0]
+
     @abc.abstractmethod
     def run_query(self, query):
         pass

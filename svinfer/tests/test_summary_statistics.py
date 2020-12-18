@@ -21,8 +21,7 @@ import pandas as pd
 # import numpy as np
 from scipy import stats
 
-from ..processor.database_processor import DatabaseProcessor
-from ..processor.dataframe_processor import DataFrameProcessor
+from ..processor.commons import DataFrameProcessor, DatabaseProcessor
 from ..summary_statistics.summary_statistics import SummaryStatistics
 from .utilities import check_if_almost_equal, simulate_test_data
 
@@ -141,12 +140,16 @@ class TestSummaryStatistics(unittest.TestCase):
         ensure the same final results.
         """
         df_data = DataFrameProcessor(self.data)
-        df_moments, df_n = df_data.prepare_for_summary_statistics(["x1", "x2"])
+        df_moments, df_n = SummaryStatistics(
+            ["x1", "x2"], [2.0 ** 2, 1.0 ** 2]
+        )._preprocess_data(df_data)
 
         connection = sqlite3.connect(":memory:")
         self.data.to_sql("db_data", con=connection)
         db_data = DatabaseProcessor(connection, "db_data")
-        db_moments, db_n = db_data.prepare_for_summary_statistics(["x1", "x2"])
+        db_moments, db_n = SummaryStatistics(
+            ["x1", "x2"], [2.0 ** 2, 1.0 ** 2]
+        )._preprocess_data(db_data)
 
         for i in range(2):
             self.assertTrue(

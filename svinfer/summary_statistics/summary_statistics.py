@@ -17,7 +17,8 @@ import logging
 import numpy as np
 from scipy import linalg, special
 import pandas as pd
-from ..processor.abstract_processor import AbstractProcessor
+from ..processor.commons import AbstractProcessor
+from ..processor.matrix import get_result
 
 
 class SummaryStatisticsForOneColumn:
@@ -83,7 +84,22 @@ class SummaryStatistics:
 
     def _preprocess_data(self, data: AbstractProcessor):
         logging.info("data is an instance of %s", type(data))
-        return data.prepare_for_summary_statistics(self.x_columns)
+        x = data.prepare_x(self.x_columns)
+        z = get_result({
+            "m1": x,
+            "m2": x * x,
+            "m3": x * x * x,
+            "m4": x * x * x * x,
+        }, data.run_query)
+        n = z["sample_size"]
+        m1 = z["m1"]
+        m2 = z["m2"]
+        m3 = z["m3"]
+        m4 = z["m4"]
+        x_moments = []
+        for i in range(len(self.x_columns)):
+            x_moments.append(np.array([m1[i], m2[i], m3[i], m4[i]]))
+        return x_moments, n
 
     def estimate_summary_statistics(self, data):
         x_moments, n = self._preprocess_data(data)
