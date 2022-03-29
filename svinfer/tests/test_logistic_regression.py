@@ -67,8 +67,8 @@ class Wrapper:
                 check_if_almost_equal(
                     svinfer_beta,
                     sm_beta,
-                    absolute_tolerance=1e-12,
-                    relative_tolerance=1e-12,
+                    absolute_tolerance=1e-10,
+                    relative_tolerance=1e-10,
                 )
             )
 
