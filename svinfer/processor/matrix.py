@@ -14,8 +14,9 @@
 # limitations under the License.
 
 import abc
-import sqlalchemy
+
 import numpy as np
+import sqlalchemy
 
 
 class AbstractMatrix(abc.ABC):
@@ -109,7 +110,7 @@ class NumpyMatrix(AbstractMatrix):
         self.value = x
         self.ncol = x.shape[1]
         if dim is None:
-            dim = (self.ncol, )
+            dim = (self.ncol,)
         else:
             assert np.prod(dim) == self.ncol
         self.dim = dim
@@ -176,7 +177,7 @@ class NumpyMatrix(AbstractMatrix):
         assert isinstance(other, NumpyMatrix)
         result = []
         for j in range(other.ncol):
-            result.append(self.value * other.value[:, j:(j + 1)])
+            result.append(self.value * other.value[:, j : (j + 1)])
         result = np.concatenate(result, axis=1)
         return NumpyMatrix(result, dim=(self.ncol, other.ncol))
 
@@ -194,7 +195,7 @@ class SqlMatrix(AbstractMatrix):
         self.value = x.copy()
         self.ncol = len(x)
         if dim is None:
-            dim = (self.ncol, )
+            dim = (self.ncol,)
         else:
             assert np.prod(dim) == self.ncol
         self.dim = dim
@@ -203,21 +204,16 @@ class SqlMatrix(AbstractMatrix):
         return SqlMatrix(self.value)
 
     def __neg__(self):
-        return SqlMatrix([
-            -self.value[j] for j in range(self.ncol)
-        ])
+        return SqlMatrix([-self.value[j] for j in range(self.ncol)])
 
     def __add__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return SqlMatrix([
-                self.value[j] + other for j in range(self.ncol)
-            ])
+            return SqlMatrix([self.value[j] + other for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
-            return SqlMatrix([
-                self.value[j] + other.value[j % other.ncol]
-                for j in range(self.ncol)
-            ])
+            return SqlMatrix(
+                [self.value[j] + other.value[j % other.ncol] for j in range(self.ncol)]
+            )
         return NotImplemented
 
     def __radd__(self, other):
@@ -231,15 +227,12 @@ class SqlMatrix(AbstractMatrix):
 
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return SqlMatrix([
-                self.value[j] * float(other) for j in range(self.ncol)
-            ])
+            return SqlMatrix([self.value[j] * float(other) for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
-            return SqlMatrix([
-                self.value[j] * other.value[j % other.ncol]
-                for j in range(self.ncol)
-            ])
+            return SqlMatrix(
+                [self.value[j] * other.value[j % other.ncol] for j in range(self.ncol)]
+            )
         return NotImplemented
 
     def __rmul__(self, other):
@@ -247,28 +240,22 @@ class SqlMatrix(AbstractMatrix):
 
     def __truediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return SqlMatrix([
-                self.value[j] / float(other) for j in range(self.ncol)
-            ])
+            return SqlMatrix([self.value[j] / float(other) for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
-            return SqlMatrix([
-                self.value[j] / other.value[j % other.ncol]
-                for j in range(self.ncol)
-            ])
+            return SqlMatrix(
+                [self.value[j] / other.value[j % other.ncol] for j in range(self.ncol)]
+            )
         return NotImplemented
 
     def __rtruediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return SqlMatrix([
-                float(other) / self.value[j] for j in range(self.ncol)
-            ])
+            return SqlMatrix([float(other) / self.value[j] for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
-            return SqlMatrix([
-                other.value[j % other.ncol] / self.value[j]
-                for j in range(self.ncol)
-            ])
+            return SqlMatrix(
+                [other.value[j % other.ncol] / self.value[j] for j in range(self.ncol)]
+            )
         return NotImplemented
 
     def dot(self, b):
@@ -323,12 +310,7 @@ def get_result(tags, query_runner=None):
             for j in range(v.ncol):
                 sql_columns.append(sqlalchemy.func.avg(v.value[j]))
             stop = len(sql_columns)
-            sql_parts.append({
-                "key": k,
-                "start": start,
-                "stop": stop,
-                "dim": v.dim
-            })
+            sql_parts.append({"key": k, "start": start, "stop": stop, "dim": v.dim})
         elif isinstance(v, NumpyMatrix):
             if sample_size is None:
                 sample_size = v.value.shape[0]
@@ -351,8 +333,8 @@ def get_result(tags, query_runner=None):
         else:
             assert sample_size == raw[0]
         for part in sql_parts:
-            result[part["key"]] = np.array(
-                raw[part["start"]:part["stop"]]
-            ).reshape(part["dim"])
+            result[part["key"]] = np.array(raw[part["start"] : part["stop"]]).reshape(
+                part["dim"]
+            )
     result["sample_size"] = sample_size
     return result

@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 import math
-import numpy as np
 import sqlite3
+import unittest
+
+import numpy as np
 import statsmodels.api as sm
 
-from ..processor.commons import DataFrameProcessor, DatabaseProcessor
 from ..linear_model.logistic_regression import LogisticRegression
+
+from ..processor.commons import DatabaseProcessor, DataFrameProcessor
 from .utilities import (
     check_if_almost_equal,
     simulate_test_data,
@@ -112,12 +114,12 @@ class Wrapper:
                 df_x,
                 df_y,
                 np.array([0.0] + self.x_s2),
-                df_data.run_query
+                df_data.run_query,
             )
 
             # database version
             conn = sqlite3.connect(":memory:")
-            conn.create_function('EXP', 1, math.exp)
+            conn.create_function("EXP", 1, math.exp)
             self.data.to_sql("db_data", conn)
             db_data = DatabaseProcessor(conn, "db_data")
             db_x, db_y = db_data.prepare_xy(self.predictors_noisy, self.response)
@@ -126,7 +128,7 @@ class Wrapper:
                 db_x,
                 db_y,
                 np.array([0.0] + self.x_s2),
-                db_data.run_query
+                db_data.run_query,
             )
 
             # compare
@@ -155,7 +157,7 @@ class Wrapper:
             """
             # prepare database environment
             conn = sqlite3.connect(":memory:")
-            conn.create_function('EXP', 1, math.exp)
+            conn.create_function("EXP", 1, math.exp)
             self.data.to_sql("db_data", conn)
 
             # fit model
@@ -177,7 +179,7 @@ class TestLogisticRegression(Wrapper.BaseTestLogisticRegression):
         self.predictors_clear = ["z1", "z2"]
         self.predictors_noisy = ["x1", "x2"]
         self.response = "y_binary"
-        self.x_s2 = [2.0 ** 2, 1.0 ** 2]
+        self.x_s2 = [2.0**2, 1.0**2]
         self.beta_true = [1, 2, -0.5]
 
 
@@ -187,7 +189,7 @@ class TestLogisticRegression2(Wrapper.BaseTestLogisticRegression):
         self.predictors_clear = ["z1", "z2"]
         self.predictors_noisy = ["x1_squared", "x2_squared"]
         self.response = "y_binary"
-        self.x_s2 = [1.0 ** 2, 2.0 ** 2]
+        self.x_s2 = [1.0**2, 2.0**2]
         self.beta_true = [1, 2, -0.5]
 
 

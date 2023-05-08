@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .commons import AbstractProcessor, DataFrameProcessor, DatabaseProcessor
+from .commons import AbstractProcessor, DatabaseProcessor, DataFrameProcessor
 
 __all__ = [
     AbstractProcessor,

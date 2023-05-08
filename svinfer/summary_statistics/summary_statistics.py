@@ -14,9 +14,11 @@
 # limitations under the License.
 
 import logging
+
 import numpy as np
-from scipy import linalg, special
 import pandas as pd
+from scipy import linalg, special
+
 from ..processor.commons import AbstractProcessor
 from ..processor.matrix import get_result
 
@@ -36,7 +38,7 @@ class SummaryStatisticsForOneColumn:
         """
         # the 0th, 1st, 2nd, 3rd, 4th moments of a normal distribution
         # with variance self.s2
-        noise_moments = [1, 0, self.s2, 0, 3 * self.s2 ** 2]
+        noise_moments = [1, 0, self.s2, 0, 3 * self.s2**2]
         a = np.zeros([4, 4])
         for i in range(4):
             for j in range(i + 1):
@@ -55,9 +57,9 @@ class SummaryStatisticsForOneColumn:
         average = mu1
         # compute central moments given raw moments
         # formula: https://en.wikipedia.org/wiki/Central_moment
-        central_mu2 = mu2 - mu1 ** 2
-        central_mu3 = mu3 - 3 * mu1 * mu2 + 2 * mu1 ** 3
-        central_mu4 = mu4 - 4 * mu1 * mu3 + 6 * mu1 ** 2 * mu2 - 3 * mu1 ** 4
+        central_mu2 = mu2 - mu1**2
+        central_mu3 = mu3 - 3 * mu1 * mu2 + 2 * mu1**3
+        central_mu4 = mu4 - 4 * mu1 * mu3 + 6 * mu1**2 * mu2 - 3 * mu1**4
         # get sample standard deviation
         # warning: this estimation approach cannot guarantee that the sample std is positive.
         if central_mu2 < 0:
@@ -65,13 +67,19 @@ class SummaryStatisticsForOneColumn:
         # compute standard deviation with df correction
         standard_deviation = np.sqrt(central_mu2 * self.n / (self.n - 1))
         # compute skewness via method of moments
-        skewness = central_mu3 / central_mu2 ** 1.5
+        skewness = central_mu3 / central_mu2**1.5
         if not bias:
             skewness *= np.sqrt((self.n - 1.0) * self.n) / (self.n - 2.0)
         # compute kurtosis via method of moments
-        kurtosis = central_mu4 / central_mu2 ** 2
+        kurtosis = central_mu4 / central_mu2**2
         if not bias:
-            kurtosis = 1.0 / (self.n - 2.0) / (self.n - 3.0) * ((self.n ** 2 - 1) * kurtosis - 3.0 * (self.n - 1) ** 2) + 3
+            kurtosis = (
+                1.0
+                / (self.n - 2.0)
+                / (self.n - 3.0)
+                * ((self.n**2 - 1) * kurtosis - 3.0 * (self.n - 1) ** 2)
+                + 3
+            )
         return average, standard_deviation, skewness, kurtosis
 
 
@@ -85,12 +93,15 @@ class SummaryStatistics:
     def _preprocess_data(self, data: AbstractProcessor):
         logging.info("data is an instance of %s", type(data))
         x = data.prepare_x(self.x_columns)
-        z = get_result({
-            "m1": x,
-            "m2": x * x,
-            "m3": x * x * x,
-            "m4": x * x * x * x,
-        }, data.run_query)
+        z = get_result(
+            {
+                "m1": x,
+                "m2": x * x,
+                "m3": x * x * x,
+                "m4": x * x * x * x,
+            },
+            data.run_query,
+        )
         n = z["sample_size"]
         m1 = z["m1"]
         m2 = z["m2"]
@@ -112,5 +123,6 @@ class SummaryStatistics:
         self.summary_statistics = pd.DataFrame(
             data=tmp,
             columns=["average", "standard_deviation", "skewness", "kurtosis"],
-            index=self.x_columns)
+            index=self.x_columns,
+        )
         return self

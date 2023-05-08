@@ -15,11 +15,13 @@
 
 import abc
 import logging
+
 import numpy as np
 import pandas as pd
 import sqlalchemy
 
 from .matrix import NumpyMatrix, SqlMatrix
+
 
 class AbstractProcessor(abc.ABC):
     @abc.abstractmethod

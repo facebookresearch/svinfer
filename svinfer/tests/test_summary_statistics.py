@@ -21,7 +21,7 @@ import pandas as pd
 # import numpy as np
 from scipy import stats
 
-from ..processor.commons import DataFrameProcessor, DatabaseProcessor
+from ..processor.commons import DatabaseProcessor, DataFrameProcessor
 from ..summary_statistics.summary_statistics import SummaryStatistics
 from .utilities import check_if_almost_equal, simulate_test_data
 
@@ -37,9 +37,11 @@ class TestSummaryStatistics(unittest.TestCase):
         """
         df_data = DataFrameProcessor(self.data)
         # version 1: does not correct bias in skewness and kurtosis
-        estimator1 = SummaryStatistics(
-            ["z1", "z2"], [0, 0]
-        ).estimate_summary_statistics(df_data).summary_statistics
+        estimator1 = (
+            SummaryStatistics(["z1", "z2"], [0, 0])
+            .estimate_summary_statistics(df_data)
+            .summary_statistics
+        )
         truth1 = pd.DataFrame(
             {
                 "average": self.data[["z1", "z2"]].mean(),
@@ -66,9 +68,11 @@ class TestSummaryStatistics(unittest.TestCase):
             )
 
         # version 2: correct bias in skewness and kurtosis
-        estimator2 = SummaryStatistics(
-            ["z1", "z2"], [0, 0], bias=False
-        ).estimate_summary_statistics(df_data).summary_statistics
+        estimator2 = (
+            SummaryStatistics(["z1", "z2"], [0, 0], bias=False)
+            .estimate_summary_statistics(df_data)
+            .summary_statistics
+        )
         truth2 = pd.DataFrame(
             {
                 "average": self.data[["z1", "z2"]].mean(),
@@ -104,9 +108,11 @@ class TestSummaryStatistics(unittest.TestCase):
         to the underlying non-noisy data.
         """
         df_data = DataFrameProcessor(self.data)
-        estimator = SummaryStatistics(
-            ["x1", "x2"], [2.0 ** 2, 1.0 ** 2]
-        ).estimate_summary_statistics(df_data).summary_statistics
+        estimator = (
+            SummaryStatistics(["x1", "x2"], [2.0**2, 1.0**2])
+            .estimate_summary_statistics(df_data)
+            .summary_statistics
+        )
         truth = pd.DataFrame(
             {
                 "average": self.data[["z1", "z2"]].mean(),
@@ -141,14 +147,14 @@ class TestSummaryStatistics(unittest.TestCase):
         """
         df_data = DataFrameProcessor(self.data)
         df_moments, df_n = SummaryStatistics(
-            ["x1", "x2"], [2.0 ** 2, 1.0 ** 2]
+            ["x1", "x2"], [2.0**2, 1.0**2]
         )._preprocess_data(df_data)
 
         connection = sqlite3.connect(":memory:")
         self.data.to_sql("db_data", con=connection)
         db_data = DatabaseProcessor(connection, "db_data")
         db_moments, db_n = SummaryStatistics(
-            ["x1", "x2"], [2.0 ** 2, 1.0 ** 2]
+            ["x1", "x2"], [2.0**2, 1.0**2]
         )._preprocess_data(db_data)
 
         for i in range(2):
@@ -162,10 +168,7 @@ class TestSummaryStatistics(unittest.TestCase):
             )
         self.assertTrue(
             check_if_almost_equal(
-                df_n,
-                db_n,
-                absolute_tolerance=1e-12,
-                relative_tolerance=1e-12
+                df_n, db_n, absolute_tolerance=1e-12, relative_tolerance=1e-12
             )
         )
 

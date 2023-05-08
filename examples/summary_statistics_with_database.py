@@ -18,11 +18,11 @@ Illustrate how to get summary statistics for x1 and x2 where x1, x2 contains
 designed noise, when training data is stored as a table in SQLite database.
 """
 
+import sqlite3
+
+from summary_statistics_with_dataframe import simulate_training_data
 from svinfer.processor import DatabaseProcessor
 from svinfer.summary_statistics import SummaryStatistics
-
-import sqlite3
-from summary_statistics_with_dataframe import simulate_training_data
 
 
 if __name__ == "__main__":
@@ -42,7 +42,9 @@ if __name__ == "__main__":
     ).estimate_summary_statistics(db_data)
 
     # check result
-    print("summary Statistics for x1 and x2 are: \n{}".format(result.summary_statistics))
+    print(
+        "summary Statistics for x1 and x2 are: \n{}".format(result.summary_statistics)
+    )
     # expect results to be:
     # summary Statistics for x1 and x2 are:
     #     average  standard_deviation  skewness  kurtosis

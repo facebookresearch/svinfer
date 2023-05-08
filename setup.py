@@ -23,7 +23,7 @@ if __name__ == "__main__":
         author="Facebook",
         author_email="researchtool-help@fb.com",
         description="Statistical models with valid inference "
-                    "for differentially private data",
+        "for differentially private data",
         packages=[
             "svinfer",
             "svinfer.linear_model",

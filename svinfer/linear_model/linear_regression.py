@@ -16,9 +16,9 @@
 import logging
 
 import numpy as np
+
 from ..processor.commons import AbstractProcessor
 from ..processor.matrix import get_result
-
 
 
 class LinearRegressionCoefficients:
@@ -70,11 +70,15 @@ class LinearRegressionCoefficients:
             # but use df -= self.k - 1 for now to be aligned with the R package
             df -= self.k - 1
         term1 = (
-            self.yty
-            - 2 * self.beta.T.dot(self.xty)
-            + self.beta.T.dot(self.xtx).dot(self.beta)
-        ) * self.n / df
-        term2 = (self.beta ** 2 * self.x_s2).sum()
+            (
+                self.yty
+                - 2 * self.beta.T.dot(self.xty)
+                + self.beta.T.dot(self.xtx).dot(self.beta)
+            )
+            * self.n
+            / df
+        )
+        term2 = (self.beta**2 * self.x_s2).sum()
         sigma_sq = term1 - term2
         # check whether variance is positive or not
         if sigma_sq < 0.0:
@@ -128,8 +132,7 @@ class LinearRegressionVariance:
 
     def estimate_vcov_xy_xy(self, k, j):
         return (
-            self.sigma_sq * self.omega[k, j]
-            + self.x_s2[k] * (k == j) * self.yty
+            self.sigma_sq * self.omega[k, j] + self.x_s2[k] * (k == j) * self.yty
         ) / self.n
 
     def estimate_vcov_xy_xx(self, k, j, m):
@@ -248,11 +251,14 @@ class LinearRegression:
     def _preprocess_data(self, data: AbstractProcessor):
         logging.info("data is an instance of %s", type(data))
         x, y = data.prepare_xy(self.x_columns, self.y_column, self.fit_intercept)
-        z = get_result({
-            "xtx": x.cross(x),
-            "xty": x.cross(y),
-            "yty": y.cross(y),
-        }, data.run_query)
+        z = get_result(
+            {
+                "xtx": x.cross(x),
+                "xty": x.cross(y),
+                "yty": y.cross(y),
+            },
+            data.run_query,
+        )
         n = z["sample_size"]
         xtx = z["xtx"]
         xty = z["xty"][:, 0]

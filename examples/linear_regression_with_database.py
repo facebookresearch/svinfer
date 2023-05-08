@@ -19,11 +19,11 @@ valid inference when x1, x2 contains designed noise, when training data
 is stored as a table in SQLite database.
 """
 
-from svinfer.processor import DatabaseProcessor
-from svinfer.linear_model import LinearRegression
-
 import sqlite3
+
 from linear_regression_with_dataframe import simulate_training_data
+from svinfer.linear_model import LinearRegression
+from svinfer.processor import DatabaseProcessor
 
 
 if __name__ == "__main__":

@@ -15,9 +15,10 @@
 
 import numpy as np
 import pandas as pd
-from scipy import stats, special
+from scipy import special, stats
 
-def simulate_test_data(n = 100000, seed=0):
+
+def simulate_test_data(n=100000, seed=0):
     """
     A simulation setting from the following paper https://gking.harvard.edu/dpd
     The z1, z2 are features,
@@ -29,10 +30,7 @@ def simulate_test_data(n = 100000, seed=0):
     z2 = np.random.poisson(lam=9, size=n) + (2 * z1)
     return pd.DataFrame(
         {
-            "y": 10
-            + (12 * z1)
-            - (3 * z2)
-            + (2 * np.random.standard_normal(size=n)),
+            "y": 10 + (12 * z1) - (3 * z2) + (2 * np.random.standard_normal(size=n)),
             "z1": z1,
             "z2": z2,
             "x1": z1 + np.random.standard_normal(size=n) * 2.0,
@@ -42,6 +40,7 @@ def simulate_test_data(n = 100000, seed=0):
             "filter2": np.random.binomial(1, 0.5, size=n),
         }
     )
+
 
 def simulate_test_data_misspecified_model(n=100000, seed=123):
     """
@@ -67,15 +66,18 @@ def simulate_test_data_misspecified_model(n=100000, seed=123):
         {
             "z1": z1,
             "z2": z2,
-            "z1_squared": z1 ** 2,
-            "z2_squared": z2 ** 2,
-            "x1_squared": z1 ** 2 + np.random.standard_normal(size=n) * 1,
-            "x2_squared": z2 ** 2 + np.random.standard_normal(size=n) * 2,
-            "y_binary": stats.bernoulli.rvs(special.expit(1 + 2 * z1 ** 2 - 0.5 * z2 ** 2)),
+            "z1_squared": z1**2,
+            "z2_squared": z2**2,
+            "x1_squared": z1**2 + np.random.standard_normal(size=n) * 1,
+            "x2_squared": z2**2 + np.random.standard_normal(size=n) * 2,
+            "y_binary": stats.bernoulli.rvs(
+                special.expit(1 + 2 * z1**2 - 0.5 * z2**2)
+            ),
             "filter1": np.random.binomial(1, 0.7, size=n),
             "filter2": np.random.binomial(1, 0.5, size=n),
         }
     )
+
 
 def check_if_almost_equal(x1, x2, absolute_tolerance=1e-12, relative_tolerance=1e-12):
     # logic: absolute(x1 - x2) <= (absolute_tolerance + relative_tolerance * absolute(x2))

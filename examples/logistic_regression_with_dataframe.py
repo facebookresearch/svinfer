@@ -21,7 +21,7 @@ is a pandas DataFrame in memory.
 
 import numpy as np
 import pandas as pd
-from scipy import stats, special
+from scipy import special, stats
 from svinfer.linear_model import LogisticRegression
 from svinfer.processor import DataFrameProcessor
 

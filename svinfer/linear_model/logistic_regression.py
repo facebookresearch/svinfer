@@ -14,11 +14,13 @@
 # limitations under the License.
 
 import logging
+
 import numpy as np
 from scipy import optimize
 
-from ..processor.matrix import get_result
 from ..processor.commons import AbstractProcessor
+
+from ..processor.matrix import get_result
 
 
 class LogisticRegression:
@@ -28,6 +30,7 @@ class LogisticRegression:
     logistic regression. The Annals of Statistics, 1335-1351.
     https://www.jstor.org/stable/2241358
     """
+
     def __init__(
         self,
         x_columns,
@@ -37,9 +40,7 @@ class LogisticRegression:
     ):
         self.x_columns = x_columns
         self.y_column = y_column
-        self.x_s2 = np.array(
-            [0.0] + x_s2 if fit_intercept else x_s2
-        )
+        self.x_s2 = np.array([0.0] + x_s2 if fit_intercept else x_s2)
         self.fit_intercept = fit_intercept
 
         self.success = None
@@ -70,12 +71,15 @@ class LogisticRegression:
         term1_part = (y - p) * (y - 0.5)
         term2_part = c * (p * (1 - p) * (y - 0.5))
         term3_part = (c * (p * (1 - p))).cross(c)
-        z = get_result({
-            "score": score,
-            "term1_part": term1_part,
-            "term2_part": term2_part,
-            "term3_part": term3_part,
-        }, query_runner)
+        z = get_result(
+            {
+                "score": score,
+                "term1_part": term1_part,
+                "term2_part": term2_part,
+                "term3_part": term3_part,
+            },
+            query_runner,
+        )
         score = z["score"]
         term1 = z["term1_part"] * np.diag(x_s2)
         term2 = np.outer(z["term2_part"], x_s2 * beta)
@@ -88,9 +92,12 @@ class LogisticRegression:
         c = x + (y - 0.5).outer(x_s2 * beta)
         score = c * (y - 1.0 / (1.0 + (-c.dot(beta)).exp()))
         meat = score.cross(score)
-        z = get_result({
-            "meat": meat,
-        }, query_runner)
+        z = get_result(
+            {
+                "meat": meat,
+            },
+            query_runner,
+        )
         meat = z["meat"]
         sample_size = z["sample_size"]
         return meat, sample_size
@@ -102,7 +109,8 @@ class LogisticRegression:
             np.zeros(x_s2.shape),
             args=(x, y, np.zeros(x_s2.shape), query_runner),
             method="lm",
-            jac=True)
+            jac=True,
+        )
         if naive.success:
             initial = naive.x
         else:
@@ -112,7 +120,8 @@ class LogisticRegression:
             initial,
             args=(x, y, x_s2, query_runner),
             method="lm",
-            jac=True)
+            jac=True,
+        )
         beta_est = final.x
         success = final.success
         return beta_est, success

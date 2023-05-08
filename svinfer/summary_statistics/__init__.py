@@ -15,6 +15,4 @@
 
 from .summary_statistics import SummaryStatistics
 
-__all__ = [
-    SummaryStatistics
-]
+__all__ = [SummaryStatistics]

@@ -20,8 +20,8 @@ designed noise, when training data is a pandas DataFrame in memory.
 
 import numpy as np
 import pandas as pd
-from svinfer.summary_statistics import SummaryStatistics
 from svinfer.processor import DataFrameProcessor
+from svinfer.summary_statistics import SummaryStatistics
 
 
 def simulate_training_data(x_s2):
@@ -60,7 +60,9 @@ if __name__ == "__main__":
     ).estimate_summary_statistics(df_data)
 
     # check result
-    print("summary Statistics for x1 and x2 are: \n{}".format(result.summary_statistics))
+    print(
+        "summary Statistics for x1 and x2 are: \n{}".format(result.summary_statistics)
+    )
     # expect results to be
     #     summary Statistics for x1 and x2 are:
     #         average  standard_deviation  skewness  kurtosis

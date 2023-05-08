@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sqlite3
 import unittest
 
 import numpy as np
-import sqlite3
 
 from ..linear_model.linear_regression import LinearRegression
-from ..processor.commons import DataFrameProcessor, DatabaseProcessor
+from ..processor.commons import DatabaseProcessor, DataFrameProcessor
 from .utilities import check_if_almost_equal, simulate_test_data
+
 
 class TestLinearRegression(unittest.TestCase):
     def setUp(self):
@@ -61,7 +62,7 @@ class TestLinearRegression(unittest.TestCase):
         model = LinearRegression(
             ["x1", "x2"],
             "y",
-            [2.0 ** 2, 1.0 ** 2],
+            [2.0**2, 1.0**2],
             fit_intercept=True,
             df_corrected=True,
             n_replications=50000,
@@ -75,9 +76,7 @@ class TestLinearRegression(unittest.TestCase):
                 relative_tolerance=1e-8,
             )
         )
-        self.assertTrue(
-            check_if_almost_equal(model.sigma_sq, 2.892436195392406, 1e-8)
-        )
+        self.assertTrue(check_if_almost_equal(model.sigma_sq, 2.892436195392406, 1e-8))
         self.assertTrue(
             check_if_almost_equal(
                 model.beta_vcov,
@@ -116,7 +115,7 @@ class TestLinearRegression(unittest.TestCase):
         df_result = LinearRegression(
             ["x1", "x2"],
             "y",
-            [2.0 ** 2, 1.0 ** 2],
+            [2.0**2, 1.0**2],
             fit_intercept=True,
             df_corrected=True,
             n_replications=50000,
@@ -129,7 +128,7 @@ class TestLinearRegression(unittest.TestCase):
         db_result = LinearRegression(
             ["x1", "x2"],
             "y",
-            [2.0 ** 2, 1.0 ** 2],
+            [2.0**2, 1.0**2],
             fit_intercept=True,
             df_corrected=True,
             n_replications=50000,
@@ -139,7 +138,8 @@ class TestLinearRegression(unittest.TestCase):
         for i in range(4):
             self.assertTrue(
                 check_if_almost_equal(
-                    df_result[i], db_result[i],
+                    df_result[i],
+                    db_result[i],
                     absolute_tolerance=1e-12,
                     relative_tolerance=1e-12,
                 )
@@ -152,12 +152,14 @@ class TestLinearRegression(unittest.TestCase):
         when giving the same training data,
         which will further ensure the same linear model results.
         """
-        filtered_data = self.data[(self.data["filter1"] == 1) & (self.data["filter2"] == 1)]
+        filtered_data = self.data[
+            (self.data["filter1"] == 1) & (self.data["filter2"] == 1)
+        ]
         df_data = DataFrameProcessor(filtered_data)
         df_result = LinearRegression(
             ["x1", "x2"],
             "y",
-            [2.0 ** 2, 1.0 ** 2],
+            [2.0**2, 1.0**2],
             fit_intercept=True,
             df_corrected=True,
             n_replications=50000,
@@ -167,14 +169,12 @@ class TestLinearRegression(unittest.TestCase):
         connection = sqlite3.connect(":memory:")
         self.data.to_sql("db_data", con=connection)
         db_data = DatabaseProcessor(
-            connection,
-            "db_data",
-            filters={"filter1": [1], "filter2": [1]}
+            connection, "db_data", filters={"filter1": [1], "filter2": [1]}
         )
         db_result = LinearRegression(
             ["x1", "x2"],
             "y",
-            [2.0 ** 2, 1.0 ** 2],
+            [2.0**2, 1.0**2],
             fit_intercept=True,
             df_corrected=True,
             n_replications=50000,
@@ -184,7 +184,8 @@ class TestLinearRegression(unittest.TestCase):
         for i in range(4):
             self.assertTrue(
                 check_if_almost_equal(
-                    df_result[i], db_result[i],
+                    df_result[i],
+                    db_result[i],
                     absolute_tolerance=1e-12,
                     relative_tolerance=1e-12,
                 )
