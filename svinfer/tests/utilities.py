@@ -70,9 +70,7 @@ def simulate_test_data_misspecified_model(n=100000, seed=123):
             "z2_squared": z2**2,
             "x1_squared": z1**2 + np.random.standard_normal(size=n) * 1,
             "x2_squared": z2**2 + np.random.standard_normal(size=n) * 2,
-            "y_binary": stats.bernoulli.rvs(
-                special.expit(1 + 2 * z1**2 - 0.5 * z2**2)
-            ),
+            "y_binary": stats.bernoulli.rvs(special.expit(1 + 2 * z1**2 - 0.5 * z2**2)),
             "filter1": np.random.binomial(1, 0.7, size=n),
             "filter2": np.random.binomial(1, 0.5, size=n),
         }
