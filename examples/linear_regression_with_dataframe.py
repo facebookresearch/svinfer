@@ -62,20 +62,20 @@ if __name__ == "__main__":
     ).fit(df_data)
 
     # check result
-    print("beta_tilde is: \n{}".format(model.beta))
+    print(f"beta_tilde is: \n{model.beta}")
     # expected results should be close to
     # beta_tilde is:
     # [10.53475783 12.26662045 -3.11457588]
-    print("beta_tilde's standard error is: \n{}".format(model.beta_standarderror))
+    print(f"beta_tilde's standard error is: \n{model.beta_standarderror}")
     # expected results should be close to
     # beta_tilde's standard error is:
     # [1.29629034 0.49465959 0.19243032]
-    print("beta_tile's variance-covariance matrix: \n{}".format(model.beta_vcov))
+    print(f"beta_tile's variance-covariance matrix: \n{model.beta_vcov}")
     # expected results should be close to
     # beta_tile's variance-covariance matrix:
     # [[ 1.68036864  0.42095858 -0.19852479]
     # [ 0.42095858  0.24468811 -0.0930343 ]
     # [-0.19852479 -0.0930343   0.03702943]]
-    print("estimated residual variance is {}".format(model.sigma_sq))
+    print(f"estimated residual variance is {model.sigma_sq}")
     # expected results should be close to
     # estimated residual variance is 0.5136891806650965

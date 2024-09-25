@@ -68,7 +68,7 @@ if __name__ == "__main__":
     ).fit(db_data)
 
     # check result
-    print("The regression coefficients are: \n{}".format(model.beta))
+    print(f"The regression coefficients are: \n{model.beta}")
     # expected results should be close to
     # The regression coefficients are:
     # [ 0.95180511  1.99898351 -0.49728914]

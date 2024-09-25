@@ -45,20 +45,20 @@ if __name__ == "__main__":
     ).fit(db_data)
 
     # check result
-    print("beta_tilde is: \n{}".format(model.beta))
+    print(f"beta_tilde is: \n{model.beta}")
     # expect results to be close to
     # beta_tilde is:
     # [10.53475783 12.26662045 -3.11457588]
-    print("beta_tilde's standard error is: \n{}".format(model.beta_standarderror))
+    print(f"beta_tilde's standard error is: \n{model.beta_standarderror}")
     # expect results to be close to
     # beta_tilde's standard error is:
     # [1.28940235 0.45779356 0.17814397]
-    print("beta_tile's variance-covariance matrix: \n{}".format(model.beta_vcov))
+    print(f"beta_tile's variance-covariance matrix: \n{model.beta_vcov}")
     # expect results to be close to
     # beta_tile's variance-covariance matrix:
     # [[1.66255843  0.35312458 -0.17656444]
     #  [0.35312458  0.20957495 -0.07915853]
     #  [-0.17656444 -0.07915853 0.03173527]]
-    print("estimated residual variance is {}".format(model.sigma_sq))
+    print(f"estimated residual variance is {model.sigma_sq}")
     # expect results to be close to
     # estimated residual variance is 0.5136891806650965

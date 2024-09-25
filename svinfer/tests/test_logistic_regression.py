@@ -33,7 +33,7 @@ from .utilities import (
 class Wrapper:
     class BaseTestLogisticRegression(unittest.TestCase):
         def __init__(self, *args, **kwargs):
-            super(Wrapper.BaseTestLogisticRegression, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
             self.data = None
             self.predictors_clear = None
             self.predictors_noisy = None

@@ -60,9 +60,7 @@ if __name__ == "__main__":
     ).estimate_summary_statistics(df_data)
 
     # check result
-    print(
-        "summary Statistics for x1 and x2 are: \n{}".format(result.summary_statistics)
-    )
+    print(f"summary Statistics for x1 and x2 are: \n{result.summary_statistics}")
     # expect results to be
     #     summary Statistics for x1 and x2 are:
     #         average  standard_deviation  skewness  kurtosis

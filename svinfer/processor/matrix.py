@@ -104,7 +104,7 @@ class AbstractMatrix(abc.ABC):
 class NumpyMatrix(AbstractMatrix):
     def __init__(self, x, dim=None):
         assert isinstance(x, np.ndarray)
-        super(NumpyMatrix, self).__init__()
+        super().__init__()
         if len(x.shape) == 1:
             x = x[:, np.newaxis]
         self.value = x
@@ -191,7 +191,7 @@ class NumpyMatrix(AbstractMatrix):
 class SqlMatrix(AbstractMatrix):
     def __init__(self, x, dim=None):
         assert isinstance(x, list)
-        super(SqlMatrix, self).__init__()
+        super().__init__()
         self.value = x.copy()
         self.ncol = len(x)
         if dim is None:
