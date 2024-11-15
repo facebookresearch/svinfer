@@ -59,9 +59,7 @@ class Wrapper:
                 self.data[self.response].values,
                 sm.add_constant(self.data[self.predictors_clear].values),
                 family=sm.families.Binomial(),
-            ).fit(
-                cov_type="HC0"
-            )  # use basic sandwich
+            ).fit(cov_type="HC0")  # use basic sandwich
             sm_beta = sm_model.params
             sm_vcov = sm_model.cov_params()
 
