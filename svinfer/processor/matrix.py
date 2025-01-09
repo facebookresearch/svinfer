@@ -323,7 +323,7 @@ def get_result(tags, query_runner=None):
         if query_runner is None:
             raise ValueError("'query_runner' is required")
         query_text = str(
-            sqlalchemy.select(sql_columns).compile(
+            sqlalchemy.select(*sql_columns).compile(
                 compile_kwargs={"literal_binds": True}
             )
         )

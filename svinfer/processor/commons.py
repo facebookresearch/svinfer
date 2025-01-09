@@ -74,19 +74,20 @@ class DatabaseProcessor(AbstractProcessor):
         return df.values[0, :]
 
     def prepare_xy(self, x_columns, y_column, fit_intercept=True):
-        x_columns = [sqlalchemy.Column(j, sqlalchemy.FLOAT) for j in x_columns]
-        y_column = sqlalchemy.Column(y_column, sqlalchemy.FLOAT)
+        x_columns = [sqlalchemy.Column(j, sqlalchemy.Float) for j in x_columns]
+        y_column = sqlalchemy.Column(y_column, sqlalchemy.Float)
         filters_columns = {}
         if self.filters is not None:
             for k in self.filters:
                 filters_columns[k] = sqlalchemy.Column(k, sqlalchemy.String)
 
+        columns = [y_column, *x_columns, *filters_columns.values()]
+        distinct_columns = list({col._label: col for col in columns}.values())
+
         sqlalchemy.Table(
             self.table_name,
             sqlalchemy.MetaData(schema=self.database),
-            y_column,
-            *x_columns,
-            *filters_columns.values(),
+            *distinct_columns,
         )
 
         need = [y_column.label("y")]
@@ -101,7 +102,7 @@ class DatabaseProcessor(AbstractProcessor):
             else []
         )
 
-        work = sqlalchemy.select(need).where(sqlalchemy.and_(*where_clauses))
+        work = sqlalchemy.select(*need).where(sqlalchemy.and_(*where_clauses))
         y_part = list(work.columns)[:1]
         x_part = list(work.columns)[1:]
         return SqlMatrix(x_part), SqlMatrix(y_part)

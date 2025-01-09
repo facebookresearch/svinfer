@@ -8,7 +8,7 @@ svinfer requires
 * Python3 (>=3.7)
 * numpy (>=1.18)
 * pandas (>=1.0)
-* sqlalchemy (>=1.2)
+* sqlalchemy (>=2.0)
 
 ## Building svinfer
 ```
@@ -17,7 +17,7 @@ python3 setup.py sdist bdist_wheel
 
 ## Installing svinfer
 ```
-pip install --upgrade svinfer-0.1.3-py3-none-any.whl
+pip install --upgrade svinfer-0.2.2-py3-none-any.whl
 ```
 
 ## How sinfer works
