@@ -55,7 +55,7 @@ class LinearRegressionCoefficients:
         # reference on threshold https://fburl.com/7y4wyaev
         eigenvalues = np.linalg.eigvals(self.omega)
         if eigenvalues.max() < 0 or (
-            eigenvalues.min() < eigenvalues.max() * self.k * np.finfo(np.float_).eps
+            eigenvalues.min() < eigenvalues.max() * self.k * np.finfo(np.float64).eps
         ):
             logging.warning("omega is not positive definite")
             self.beta = np.linalg.lstsq(self.omega, self.xty, rcond=None)[0]
