@@ -23,7 +23,6 @@ import numpy as np
 import statsmodels.api as sm
 
 from ..linear_model.logistic_regression import LogisticRegression
-
 from ..processor.commons import DatabaseProcessor, DataFrameProcessor
 from .utilities import (
     check_if_almost_equal,

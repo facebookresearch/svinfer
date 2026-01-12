@@ -21,7 +21,6 @@ import numpy as np
 from scipy import optimize
 
 from ..processor.commons import AbstractProcessor
-
 from ..processor.matrix import get_result
 
 
