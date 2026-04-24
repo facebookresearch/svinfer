@@ -74,12 +74,15 @@ class LinearRegressionCoefficients:
         term1 = (
             (
                 self.yty
+                # pyrefly: ignore [missing-attribute]
                 - 2 * self.beta.T.dot(self.xty)
+                # pyrefly: ignore [missing-attribute]
                 + self.beta.T.dot(self.xtx).dot(self.beta)
             )
             * self.n
             / df
         )
+        # pyrefly: ignore [unsupported-operation]
         term2 = (self.beta**2 * self.x_s2).sum()
         sigma_sq = term1 - term2
         # check whether variance is positive or not

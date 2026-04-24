@@ -121,12 +121,15 @@ class NumpyMatrix(AbstractMatrix):
         return NumpyMatrix(self.value)
 
     def __neg__(self):
+        # pyrefly: ignore [unsupported-operation]
         return NumpyMatrix(-self.value)
 
     def __add__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(self.value + other)
         if isinstance(other, NumpyMatrix):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(self.value + other.value)
         return NotImplemented
 
@@ -141,8 +144,10 @@ class NumpyMatrix(AbstractMatrix):
 
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(self.value * other)
         if isinstance(other, NumpyMatrix):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(self.value * other.value)
         return NotImplemented
 
@@ -151,15 +156,19 @@ class NumpyMatrix(AbstractMatrix):
 
     def __truediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(self.value / other)
         if isinstance(other, NumpyMatrix):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(self.value / other.value)
         return NotImplemented
 
     def __rtruediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(other / self.value)
         if isinstance(other, NumpyMatrix):
+            # pyrefly: ignore [unsupported-operation]
             return NumpyMatrix(other.value / self.value)
         return NotImplemented
 
@@ -178,7 +187,9 @@ class NumpyMatrix(AbstractMatrix):
     def cross(self, other):
         assert isinstance(other, NumpyMatrix)
         result = []
+        # pyrefly: ignore [no-matching-overload]
         for j in range(other.ncol):
+            # pyrefly: ignore [unsupported-operation]
             result.append(self.value * other.value[:, j : (j + 1)])
         result = np.concatenate(result, axis=1)
         return NumpyMatrix(result, dim=(self.ncol, other.ncol))
@@ -206,14 +217,17 @@ class SqlMatrix(AbstractMatrix):
         return SqlMatrix(self.value)
 
     def __neg__(self):
+        # pyrefly: ignore [no-matching-overload, unsupported-operation]
         return SqlMatrix([-self.value[j] for j in range(self.ncol)])
 
     def __add__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [no-matching-overload, unsupported-operation]
             return SqlMatrix([self.value[j] + other for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
             return SqlMatrix(
+                # pyrefly: ignore [no-matching-overload, unsupported-operation]
                 [self.value[j] + other.value[j % other.ncol] for j in range(self.ncol)]
             )
         return NotImplemented
@@ -229,10 +243,12 @@ class SqlMatrix(AbstractMatrix):
 
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [no-matching-overload, unsupported-operation]
             return SqlMatrix([self.value[j] * float(other) for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
             return SqlMatrix(
+                # pyrefly: ignore [no-matching-overload, unsupported-operation]
                 [self.value[j] * other.value[j % other.ncol] for j in range(self.ncol)]
             )
         return NotImplemented
@@ -242,20 +258,24 @@ class SqlMatrix(AbstractMatrix):
 
     def __truediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [no-matching-overload, unsupported-operation]
             return SqlMatrix([self.value[j] / float(other) for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
             return SqlMatrix(
+                # pyrefly: ignore [no-matching-overload, unsupported-operation]
                 [self.value[j] / other.value[j % other.ncol] for j in range(self.ncol)]
             )
         return NotImplemented
 
     def __rtruediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
+            # pyrefly: ignore [no-matching-overload, unsupported-operation]
             return SqlMatrix([float(other) / self.value[j] for j in range(self.ncol)])
         if isinstance(other, SqlMatrix):
             assert other.ncol == self.ncol or other.ncol == 1
             return SqlMatrix(
+                # pyrefly: ignore [no-matching-overload, unsupported-operation]
                 [other.value[j % other.ncol] / self.value[j] for j in range(self.ncol)]
             )
         return NotImplemented
@@ -265,7 +285,9 @@ class SqlMatrix(AbstractMatrix):
         assert len(b.shape) == 1
         assert self.ncol == b.size
         result = sqlalchemy.literal(0.0)
+        # pyrefly: ignore [no-matching-overload]
         for j in range(self.ncol):
+            # pyrefly: ignore [unsupported-operation]
             result += self.value[j] * b[j]
         return SqlMatrix([result])
 
@@ -275,26 +297,34 @@ class SqlMatrix(AbstractMatrix):
         assert self.ncol == 1
         result = []
         for j in range(b.size):
+            # pyrefly: ignore [unsupported-operation]
             result.append(self.value[0] * b[j])
         return SqlMatrix(result)
 
     def cross(self, other):
         assert isinstance(other, SqlMatrix)
         result = []
+        # pyrefly: ignore [no-matching-overload]
         for j in range(other.ncol):
+            # pyrefly: ignore [no-matching-overload]
             for i in range(self.ncol):
+                # pyrefly: ignore [unsupported-operation]
                 result.append(self.value[i] * other.value[j])
         return SqlMatrix(result, dim=(self.ncol, other.ncol))
 
     def exp(self):
         result = []
+        # pyrefly: ignore [no-matching-overload]
         for j in range(self.ncol):
+            # pyrefly: ignore [unsupported-operation]
             result.append(sqlalchemy.func.exp(self.value[j]))
         return SqlMatrix(result)
 
     def log(self):
         result = []
+        # pyrefly: ignore [no-matching-overload]
         for j in range(self.ncol):
+            # pyrefly: ignore [unsupported-operation]
             result.append(sqlalchemy.func.log(self.value[j]))
         return SqlMatrix(result)
 
@@ -309,15 +339,20 @@ def get_result(tags, query_runner=None):
             raise ValueError("'sample_size' is reserved")
         if isinstance(v, SqlMatrix):
             start = len(sql_columns)
+            # pyrefly: ignore [no-matching-overload]
             for j in range(v.ncol):
+                # pyrefly: ignore [bad-argument-type, unsupported-operation]
                 sql_columns.append(sqlalchemy.func.avg(v.value[j]))
             stop = len(sql_columns)
             sql_parts.append({"key": k, "start": start, "stop": stop, "dim": v.dim})
         elif isinstance(v, NumpyMatrix):
             if sample_size is None:
+                # pyrefly: ignore [missing-attribute]
                 sample_size = v.value.shape[0]
             else:
+                # pyrefly: ignore [missing-attribute]
                 assert sample_size == v.value.shape[0]
+            # pyrefly: ignore [missing-attribute]
             result[k] = np.array(v.value.mean(axis=0)).reshape(v.dim)
         else:
             raise TypeError("Unknown value type with key = " + k)

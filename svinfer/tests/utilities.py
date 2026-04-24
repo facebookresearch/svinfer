@@ -27,6 +27,7 @@ def simulate_test_data(n=100000, seed=0):
     while x1, x2 are features with designed noise;
     The response y is the generated based on z1, z2.
     """
+    # pyrefly: ignore [bad-argument-type]
     np.random.seed(seed)
     z1 = np.random.poisson(lam=7, size=n)
     z2 = np.random.poisson(lam=9, size=n) + (2 * z1)
@@ -37,6 +38,7 @@ def simulate_test_data(n=100000, seed=0):
             "z2": z2,
             "x1": z1 + np.random.standard_normal(size=n) * 2.0,
             "x2": z2 + np.random.standard_normal(size=n) * 1.0,
+            # pyrefly: ignore [missing-attribute]
             "y_binary": stats.bernoulli.rvs(special.expit(1 + 2 * z1 - 0.5 * z2)),
             "filter1": np.random.binomial(1, 0.7, size=n),
             "filter2": np.random.binomial(1, 0.5, size=n),
@@ -61,6 +63,7 @@ def simulate_test_data_misspecified_model(n=100000, seed=123):
     unit test), and vcov matrix which is close to the Monte Carlo standard deviation (not
     included in this unit test).
     """
+    # pyrefly: ignore [bad-argument-type]
     np.random.seed(seed)
     z1 = np.random.normal(loc=1, scale=0.5, size=n)
     z2 = np.random.normal(loc=0.5, scale=1, size=n)
@@ -72,6 +75,7 @@ def simulate_test_data_misspecified_model(n=100000, seed=123):
             "z2_squared": z2**2,
             "x1_squared": z1**2 + np.random.standard_normal(size=n) * 1,
             "x2_squared": z2**2 + np.random.standard_normal(size=n) * 2,
+            # pyrefly: ignore [missing-attribute]
             "y_binary": stats.bernoulli.rvs(special.expit(1 + 2 * z1**2 - 0.5 * z2**2)),
             "filter1": np.random.binomial(1, 0.7, size=n),
             "filter2": np.random.binomial(1, 0.5, size=n),

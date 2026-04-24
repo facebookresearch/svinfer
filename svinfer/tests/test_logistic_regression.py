@@ -50,14 +50,21 @@ class Wrapper:
             """
             # fit by svinfer
             svinfer_model = LogisticRegression(
-                self.predictors_clear, self.response, [0] * len(self.predictors_clear)
+                # pyrefly: ignore [bad-argument-type]
+                self.predictors_clear,
+                self.response,
+                # pyrefly: ignore [bad-argument-type]
+                [0] * len(self.predictors_clear),
+                # pyrefly: ignore [bad-argument-type]
             ).fit(DataFrameProcessor(self.data))
             svinfer_beta = svinfer_model.beta
             svinfer_vcov = svinfer_model.beta_vcov
 
             # fit by statsmodels
             sm_model = sm.GLM(
+                # pyrefly: ignore [unsupported-operation]
                 self.data[self.response].values,
+                # pyrefly: ignore [unsupported-operation]
                 sm.add_constant(self.data[self.predictors_clear].values),
                 family=sm.families.Binomial(),
             ).fit(cov_type="HC0")  # use basic sandwich
@@ -89,7 +96,10 @@ class Wrapper:
             in most of the time.
             """
             model = LogisticRegression(
-                self.predictors_noisy, self.response, self.x_s2
+                self.predictors_noisy,
+                self.response,
+                self.x_s2,
+                # pyrefly: ignore [bad-argument-type]
             ).fit(DataFrameProcessor(self.data))
             beta, se = model.beta, model.beta_standarderror
             ci_lower = beta - 1.96 * se
@@ -106,12 +116,14 @@ class Wrapper:
             database version and the dataframe version.
             """
             # dataframe version
+            # pyrefly: ignore [bad-argument-type]
             df_data = DataFrameProcessor(self.data)
             df_x, df_y = df_data.prepare_xy(self.predictors_noisy, self.response)
             df_score, df_jacobian = LogisticRegression._score(
                 np.array(self.beta_true),
                 df_x,
                 df_y,
+                # pyrefly: ignore [unsupported-operation]
                 np.array([0.0] + self.x_s2),
                 df_data.run_query,
             )
@@ -119,6 +131,7 @@ class Wrapper:
             # database version
             conn = sqlite3.connect(":memory:")
             conn.create_function("EXP", 1, math.exp)
+            # pyrefly: ignore [missing-attribute]
             self.data.to_sql("db_data", conn)
             db_data = DatabaseProcessor(conn, "db_data")
             db_x, db_y = db_data.prepare_xy(self.predictors_noisy, self.response)
@@ -126,6 +139,7 @@ class Wrapper:
                 np.array(self.beta_true),
                 db_x,
                 db_y,
+                # pyrefly: ignore [unsupported-operation]
                 np.array([0.0] + self.x_s2),
                 db_data.run_query,
             )
@@ -157,6 +171,7 @@ class Wrapper:
             # prepare database environment
             conn = sqlite3.connect(":memory:")
             conn.create_function("EXP", 1, math.exp)
+            # pyrefly: ignore [missing-attribute]
             self.data.to_sql("db_data", conn)
 
             # fit model

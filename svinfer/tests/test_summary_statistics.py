@@ -62,6 +62,7 @@ class TestSummaryStatistics(unittest.TestCase):
         for s in ["average", "standard_deviation", "skewness", "kurtosis"]:
             self.assertTrue(
                 check_if_almost_equal(
+                    # pyrefly: ignore [unsupported-operation]
                     estimator1[s],
                     truth1[s],
                     absolute_tolerance=1e-12,
@@ -96,6 +97,7 @@ class TestSummaryStatistics(unittest.TestCase):
         for s in ["average", "standard_deviation", "skewness", "kurtosis"]:
             self.assertTrue(
                 check_if_almost_equal(
+                    # pyrefly: ignore [unsupported-operation]
                     estimator2[s],
                     truth2[s],
                     absolute_tolerance=1e-12,
@@ -129,11 +131,13 @@ class TestSummaryStatistics(unittest.TestCase):
                 ],
             }
         )
+        # pyrefly: ignore [missing-attribute]
         estimator.reset_index(drop=True, inplace=True)
         truth.reset_index(drop=True, inplace=True)
         for s in ["average", "standard_deviation", "skewness", "kurtosis"]:
             self.assertTrue(
                 check_if_almost_equal(
+                    # pyrefly: ignore [unsupported-operation]
                     estimator[s],
                     truth[s],
                     absolute_tolerance=1e-12,
