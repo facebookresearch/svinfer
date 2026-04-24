@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# pyre-unsafe
+# pyre-strict
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import logging
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -26,12 +29,12 @@ from ..processor.matrix import get_result
 
 
 class SummaryStatisticsForOneColumn:
-    def __init__(self, x_moments, s2, n):
+    def __init__(self, x_moments: np.ndarray, s2: float, n: int) -> None:
         self.x_moments = x_moments
         self.s2 = s2
         self.n = n
 
-    def estimate_moments(self, x_moments):
+    def estimate_moments(self, x_moments: np.ndarray) -> np.ndarray:
         """
         Estimate the 1st, 2nd, 3rd, 4th (raw) moments for underlying the data,
         given the moments of the corresponding noisy data.
@@ -49,7 +52,9 @@ class SummaryStatisticsForOneColumn:
         z_moments = linalg.solve(a, b)
         return z_moments
 
-    def estimate_summary_statistics(self, bias=True):
+    def estimate_summary_statistics(
+        self, bias: bool = True
+    ) -> Tuple[float, float, float, float]:
         """
         Compute standard mean, sample standard deviation, sample skewness and sample kurtosis
         given the sample moments of the noisy data and the sample size
@@ -86,13 +91,15 @@ class SummaryStatisticsForOneColumn:
 
 
 class SummaryStatistics:
-    def __init__(self, x_columns, x_s2, bias=True):
+    def __init__(
+        self, x_columns: List[str], x_s2: List[float], bias: bool = True
+    ) -> None:
         self.x_columns = x_columns
         self.x_s2 = x_s2
         self.bias = bias
-        self.summary_statistics = None
+        self.summary_statistics: Optional[pd.DataFrame] = None
 
-    def _preprocess_data(self, data: AbstractProcessor):
+    def _preprocess_data(self, data: AbstractProcessor) -> Tuple[List[np.ndarray], int]:
         logging.info("data is an instance of %s", type(data))
         x = data.prepare_x(self.x_columns)
         z = get_result(
@@ -114,7 +121,7 @@ class SummaryStatistics:
             x_moments.append(np.array([m1[i], m2[i], m3[i], m4[i]]))
         return x_moments, n
 
-    def estimate_summary_statistics(self, data):
+    def estimate_summary_statistics(self, data: AbstractProcessor) -> SummaryStatistics:
         x_moments, n = self._preprocess_data(data)
         tmp = []
         for i in range(len(self.x_columns)):
