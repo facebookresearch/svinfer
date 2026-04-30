@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# pyre-unsafe
+# pyre-strict
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
 
 import sqlite3
 import unittest
@@ -29,10 +31,10 @@ from .utilities import check_if_almost_equal, simulate_test_data
 
 
 class TestSummaryStatistics(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.data = simulate_test_data()
 
-    def test_compare_with_python_buildin(self):
+    def test_compare_with_python_buildin(self) -> None:
         """
         The SummaryStatistics should return identical results to what the off-the-shelf functions
         return, when apply to the non-noisy data.
@@ -105,7 +107,7 @@ class TestSummaryStatistics(unittest.TestCase):
                 )
             )
 
-    def test_compare_noisy_data_and_clean_data(self):
+    def test_compare_noisy_data_and_clean_data(self) -> None:
         """
         The SummaryStatistics should debias the summary statistics when applied to noisy data.
         The results should be similar to what the off-the-shelf functions provide when applied
@@ -145,7 +147,7 @@ class TestSummaryStatistics(unittest.TestCase):
                 )
             )
 
-    def test_compare_database_and_dataframe_version(self):
+    def test_compare_database_and_dataframe_version(self) -> None:
         """
         The DatabaseProcessor and DataFrameProcessor should return the same intermediate
         results for SummaryStatistics, when applied the same training data. It will further
