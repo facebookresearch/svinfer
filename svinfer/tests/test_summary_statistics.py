@@ -32,7 +32,7 @@ from .utilities import check_if_almost_equal, simulate_test_data
 
 class TestSummaryStatistics(unittest.TestCase):
     def setUp(self) -> None:
-        self.data = simulate_test_data()
+        self.data: pd.DataFrame = simulate_test_data()
 
     def test_compare_with_python_buildin(self) -> None:
         """
