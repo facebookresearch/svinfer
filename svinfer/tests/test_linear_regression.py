@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# pyre-unsafe
+# pyre-strict
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import sqlite3
 import unittest
 
@@ -26,10 +28,10 @@ from .utilities import check_if_almost_equal, simulate_test_data
 
 
 class TestLinearRegression(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.data = simulate_test_data()
 
-    def test_on_clear_data(self):
+    def test_on_clear_data(self) -> None:
         """
         SVILinearRegegression should return the same results
         as a classic linear regression when features have no noise.
@@ -51,7 +53,7 @@ class TestLinearRegression(unittest.TestCase):
             )
         )
 
-    def test_compare_with_Rcode(self):
+    def test_compare_with_Rcode(self) -> None:
         """
         LinearRegression should return the same results as the
         R package (https://github.com/georgieevans/PrivacyUnbiased).
@@ -106,7 +108,7 @@ class TestLinearRegression(unittest.TestCase):
             )
         )
 
-    def test_compare_database_and_dataframe_version(self):
+    def test_compare_database_and_dataframe_version(self) -> None:
         """
         DatabaseProcessor and DataFrameProcessor should return
         the same intermediate results for linear regression,
@@ -147,7 +149,7 @@ class TestLinearRegression(unittest.TestCase):
                 )
             )
 
-    def test_compare_database_and_dataframe_version_with_filter(self):
+    def test_compare_database_and_dataframe_version_with_filter(self) -> None:
         """
         DatabaseProcessor and DataFrameProcessor should return
         the same intermediate results for linear regression,
