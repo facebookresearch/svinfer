@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import math
 import sqlite3
 import unittest
@@ -33,7 +35,7 @@ from .utilities import (
 
 class Wrapper:
     class BaseTestLogisticRegression(unittest.TestCase):
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             self.data = None
             self.predictors_clear = None
@@ -42,7 +44,7 @@ class Wrapper:
             self.x_s2 = None
             self.beta_true = None
 
-        def test_on_clear_data(self):
+        def test_on_clear_data(self) -> None:
             """
             When applied to non-noisy data, the svinfer's LogisticRegression
             is expected to return the same results as a classic logistic regression.
@@ -89,7 +91,7 @@ class Wrapper:
                 )
             )
 
-        def test_dataframe_version(self):
+        def test_dataframe_version(self) -> None:
             """
             When applied to noisy data, the svinfer's LogisticRegression
             is expected to provide confidence interval that covers the truth
@@ -109,7 +111,7 @@ class Wrapper:
                 ((ci_lower < self.beta_true) & (self.beta_true < ci_upper)).all()
             )
 
-        def test_compare_score_jacobian_between_database_and_dataframe(self):
+        def test_compare_score_jacobian_between_database_and_dataframe(self) -> None:
             """
             When applied to the same training data and the same beta,
             the score and jacobian are expected to be identical between the
@@ -162,7 +164,7 @@ class Wrapper:
                 )
             )
 
-        def test_database_version(self):
+        def test_database_version(self) -> None:
             """
             When applied to noisy data, the svinfer's LogisticRegression
             is expected to provide confidence interval that covers the truth
@@ -188,7 +190,7 @@ class Wrapper:
 
 
 class TestLogisticRegression(Wrapper.BaseTestLogisticRegression):
-    def setUp(self):
+    def setUp(self) -> None:
         self.data = simulate_test_data()
         self.predictors_clear = ["z1", "z2"]
         self.predictors_noisy = ["x1", "x2"]
@@ -198,7 +200,7 @@ class TestLogisticRegression(Wrapper.BaseTestLogisticRegression):
 
 
 class TestLogisticRegression2(Wrapper.BaseTestLogisticRegression):
-    def setUp(self):
+    def setUp(self) -> None:
         self.data = simulate_test_data_misspecified_model()
         self.predictors_clear = ["z1", "z2"]
         self.predictors_noisy = ["x1_squared", "x2_squared"]
