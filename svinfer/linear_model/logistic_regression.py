@@ -3,6 +3,8 @@
 
 # pyre-unsafe
 
+from __future__ import annotations
+
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -38,7 +40,7 @@ class LogisticRegression:
         y_column,
         x_s2,
         fit_intercept=True,
-    ):
+    ) -> None:
         self.x_columns = x_columns
         self.y_column = y_column
         self.x_s2 = np.array([0.0] + x_s2 if fit_intercept else x_s2)
