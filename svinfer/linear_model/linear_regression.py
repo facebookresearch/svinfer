@@ -15,7 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import logging
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -29,7 +32,7 @@ class LinearRegressionCoefficients:
     You should not call this class directly.
     """
 
-    def __init__(self, n, xtx, xty, yty, x_s2, df_corrected=True):
+    def __init__(self, n: int, xtx, xty, yty, x_s2, df_corrected: bool = True) -> None:
         if xtx.shape[0] != xtx.shape[1]:
             raise ValueError("xtx should be square matrix!")
         if xtx.shape[0] != xty.shape[0]:
@@ -47,7 +50,7 @@ class LinearRegressionCoefficients:
         self.sigma_sq = None
         self.omega = None
 
-    def estimate_beta(self):
+    def estimate_beta(self) -> None:
         self.omega = self.xtx.copy()
         self.omega[np.diag_indices(self.k)] = np.diag(self.omega) - self.x_s2
 
@@ -62,7 +65,7 @@ class LinearRegressionCoefficients:
         else:
             self.beta = np.linalg.solve(self.omega, self.xty)
 
-    def estimate_residual_var(self):
+    def estimate_residual_var(self) -> None:
         if self.yty is None:
             self.sigma_sq = None
             return
@@ -104,16 +107,16 @@ class LinearRegressionVariance:
 
     def __init__(
         self,
-        n,
+        n: int,
         xtx,
         xty,
         yty,
         sigma_sq,
         omega,
         x_s2,
-        n_replications=500,
-        random_state=None,
-    ):
+        n_replications: int = 500,
+        random_state: int | None = None,
+    ) -> None:
         self.n = n
         self.xtx = xtx
         self.xty = xty
@@ -182,6 +185,7 @@ class LinearRegressionVariance:
 
     def simulate_beta_vcov(self):
         t, v_t = self.simulate_distribution()
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(self.random_state)
         t_samples = np.random.multivariate_normal(
             t, v_t, self.n_replications, check_valid="ignore"
@@ -202,14 +206,14 @@ class LinearRegressionVariance:
 class LinearRegression:
     def __init__(
         self,
-        x_columns,
-        y_column,
-        x_s2,
-        fit_intercept=True,
-        df_corrected=True,
-        n_replications=500,
-        random_state=None,
-    ):
+        x_columns: Sequence[str],
+        y_column: str,
+        x_s2: Sequence[float],
+        fit_intercept: bool = True,
+        df_corrected: bool = True,
+        n_replications: int = 500,
+        random_state: int | None = None,
+    ) -> None:
         """
         LinearRegression fits a linear regression where some variables
         in the training data are subject to naturally occurring measurement
@@ -242,7 +246,7 @@ class LinearRegression:
         """
         self.x_columns = x_columns
         self.y_column = y_column
-        self.x_s2 = ([0.0] if fit_intercept else []) + x_s2
+        self.x_s2 = ([0.0] if fit_intercept else []) + list(x_s2)
         self.fit_intercept = fit_intercept
         self.df_corrected = df_corrected
         self.n_replications = n_replications
@@ -270,7 +274,7 @@ class LinearRegression:
         yty = z["yty"][0, 0]
         return n, xtx, xty, yty
 
-    def fit(self, data):
+    def fit(self, data: AbstractProcessor) -> LinearRegression:
         """
         fit model
         :return: a tuple; the 1st element is the estimated beta,
