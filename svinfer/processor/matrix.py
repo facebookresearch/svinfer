@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 
 import numpy as np
@@ -22,7 +24,7 @@ import sqlalchemy
 
 
 class AbstractMatrix(abc.ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         self.value = None
         self.ncol = None
         self.dim = None
@@ -104,7 +106,7 @@ class AbstractMatrix(abc.ABC):
 
 
 class NumpyMatrix(AbstractMatrix):
-    def __init__(self, x, dim=None):
+    def __init__(self, x, dim=None) -> None:
         assert isinstance(x, np.ndarray)
         super().__init__()
         if len(x.shape) == 1:
@@ -117,10 +119,10 @@ class NumpyMatrix(AbstractMatrix):
             assert np.prod(dim) == self.ncol
         self.dim = dim
 
-    def __pos__(self):
+    def __pos__(self) -> NumpyMatrix:
         return NumpyMatrix(self.value)
 
-    def __neg__(self):
+    def __neg__(self) -> NumpyMatrix:
         # pyrefly: ignore [unsupported-operation]
         return NumpyMatrix(-self.value)
 
@@ -172,19 +174,19 @@ class NumpyMatrix(AbstractMatrix):
             return NumpyMatrix(other.value / self.value)
         return NotImplemented
 
-    def dot(self, b):
+    def dot(self, b: np.ndarray) -> NumpyMatrix:
         assert isinstance(b, np.ndarray)
         assert len(b.shape) == 1
         assert self.ncol == b.size
         return NumpyMatrix(np.dot(self.value, b))
 
-    def outer(self, b):
+    def outer(self, b: np.ndarray) -> NumpyMatrix:
         assert isinstance(b, np.ndarray)
         assert len(b.shape) == 1
         assert self.ncol == 1
         return NumpyMatrix(np.outer(self.value, b))
 
-    def cross(self, other):
+    def cross(self, other: NumpyMatrix) -> NumpyMatrix:
         assert isinstance(other, NumpyMatrix)
         result = []
         # pyrefly: ignore [no-matching-overload]
@@ -194,15 +196,15 @@ class NumpyMatrix(AbstractMatrix):
         result = np.concatenate(result, axis=1)
         return NumpyMatrix(result, dim=(self.ncol, other.ncol))
 
-    def exp(self):
+    def exp(self) -> NumpyMatrix:
         return NumpyMatrix(np.exp(self.value))
 
-    def log(self):
+    def log(self) -> NumpyMatrix:
         return NumpyMatrix(np.log(self.value))
 
 
 class SqlMatrix(AbstractMatrix):
-    def __init__(self, x, dim=None):
+    def __init__(self, x, dim=None) -> None:
         assert isinstance(x, list)
         super().__init__()
         self.value = x.copy()
@@ -213,10 +215,10 @@ class SqlMatrix(AbstractMatrix):
             assert np.prod(dim) == self.ncol
         self.dim = dim
 
-    def __pos__(self):
+    def __pos__(self) -> SqlMatrix:
         return SqlMatrix(self.value)
 
-    def __neg__(self):
+    def __neg__(self) -> SqlMatrix:
         # pyrefly: ignore [no-matching-overload, unsupported-operation]
         return SqlMatrix([-self.value[j] for j in range(self.ncol)])
 
@@ -280,7 +282,7 @@ class SqlMatrix(AbstractMatrix):
             )
         return NotImplemented
 
-    def dot(self, b):
+    def dot(self, b: np.ndarray) -> SqlMatrix:
         assert isinstance(b, np.ndarray)
         assert len(b.shape) == 1
         assert self.ncol == b.size
@@ -291,7 +293,7 @@ class SqlMatrix(AbstractMatrix):
             result += self.value[j] * b[j]
         return SqlMatrix([result])
 
-    def outer(self, b):
+    def outer(self, b: np.ndarray) -> SqlMatrix:
         assert isinstance(b, np.ndarray)
         assert len(b.shape) == 1
         assert self.ncol == 1
@@ -301,7 +303,7 @@ class SqlMatrix(AbstractMatrix):
             result.append(self.value[0] * b[j])
         return SqlMatrix(result)
 
-    def cross(self, other):
+    def cross(self, other: SqlMatrix) -> SqlMatrix:
         assert isinstance(other, SqlMatrix)
         result = []
         # pyrefly: ignore [no-matching-overload]
@@ -312,7 +314,7 @@ class SqlMatrix(AbstractMatrix):
                 result.append(self.value[i] * other.value[j])
         return SqlMatrix(result, dim=(self.ncol, other.ncol))
 
-    def exp(self):
+    def exp(self) -> SqlMatrix:
         result = []
         # pyrefly: ignore [no-matching-overload]
         for j in range(self.ncol):
@@ -320,7 +322,7 @@ class SqlMatrix(AbstractMatrix):
             result.append(sqlalchemy.func.exp(self.value[j]))
         return SqlMatrix(result)
 
-    def log(self):
+    def log(self) -> SqlMatrix:
         result = []
         # pyrefly: ignore [no-matching-overload]
         for j in range(self.ncol):
