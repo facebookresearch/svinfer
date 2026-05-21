@@ -189,7 +189,7 @@ class NumpyMatrix(AbstractMatrix):
     def cross(self, other: NumpyMatrix) -> NumpyMatrix:
         assert isinstance(other, NumpyMatrix)
         result = []
-        # pyrefly: ignore [no-matching-overload]
+        # pyrefly: ignore [bad-argument-type, no-matching-overload]
         for j in range(other.ncol):
             # pyrefly: ignore [unsupported-operation]
             result.append(self.value * other.value[:, j : (j + 1)])
@@ -219,7 +219,7 @@ class SqlMatrix(AbstractMatrix):
         return SqlMatrix(self.value)
 
     def __neg__(self) -> SqlMatrix:
-        # pyrefly: ignore [no-matching-overload, unsupported-operation]
+        # pyrefly: ignore [bad-argument-type, no-matching-overload, unsupported-operation]
         return SqlMatrix([-self.value[j] for j in range(self.ncol)])
 
     def __add__(self, other):
@@ -287,7 +287,7 @@ class SqlMatrix(AbstractMatrix):
         assert len(b.shape) == 1
         assert self.ncol == b.size
         result = sqlalchemy.literal(0.0)
-        # pyrefly: ignore [no-matching-overload]
+        # pyrefly: ignore [bad-argument-type, no-matching-overload]
         for j in range(self.ncol):
             # pyrefly: ignore [unsupported-operation]
             result += self.value[j] * b[j]
@@ -306,9 +306,9 @@ class SqlMatrix(AbstractMatrix):
     def cross(self, other: SqlMatrix) -> SqlMatrix:
         assert isinstance(other, SqlMatrix)
         result = []
-        # pyrefly: ignore [no-matching-overload]
+        # pyrefly: ignore [bad-argument-type, no-matching-overload]
         for j in range(other.ncol):
-            # pyrefly: ignore [no-matching-overload]
+            # pyrefly: ignore [bad-argument-type, no-matching-overload]
             for i in range(self.ncol):
                 # pyrefly: ignore [unsupported-operation]
                 result.append(self.value[i] * other.value[j])
@@ -316,7 +316,7 @@ class SqlMatrix(AbstractMatrix):
 
     def exp(self) -> SqlMatrix:
         result = []
-        # pyrefly: ignore [no-matching-overload]
+        # pyrefly: ignore [bad-argument-type, no-matching-overload]
         for j in range(self.ncol):
             # pyrefly: ignore [unsupported-operation]
             result.append(sqlalchemy.func.exp(self.value[j]))
@@ -324,7 +324,7 @@ class SqlMatrix(AbstractMatrix):
 
     def log(self) -> SqlMatrix:
         result = []
-        # pyrefly: ignore [no-matching-overload]
+        # pyrefly: ignore [bad-argument-type, no-matching-overload]
         for j in range(self.ncol):
             # pyrefly: ignore [unsupported-operation]
             result.append(sqlalchemy.func.log(self.value[j]))
