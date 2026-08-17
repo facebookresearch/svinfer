@@ -185,7 +185,6 @@ class LinearRegressionVariance:
 
     def simulate_beta_vcov(self):
         t, v_t = self.simulate_distribution()
-        # pyrefly: ignore [bad-argument-type]
         np.random.seed(self.random_state)
         t_samples = np.random.multivariate_normal(
             t, v_t, self.n_replications, check_valid="ignore"

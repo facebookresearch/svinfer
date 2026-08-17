@@ -52,7 +52,6 @@ class Wrapper:
             """
             # fit by svinfer
             svinfer_model = LogisticRegression(
-                # pyrefly: ignore [bad-argument-type]
                 self.predictors_clear,
                 self.response,
                 # pyrefly: ignore [bad-argument-type]
