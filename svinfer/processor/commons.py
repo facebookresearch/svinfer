@@ -14,8 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -23,10 +26,20 @@ import sqlalchemy
 
 from .matrix import NumpyMatrix, SqlMatrix
 
+if TYPE_CHECKING:
+    import sqlite3
+    from collections.abc import Iterable, Mapping
+
+    from pandas._typing import Scalar
+
+    from .matrix import AbstractMatrix
+
 
 class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
-    def prepare_xy(self, x_columns, y_column, fit_intercept=True):
+    def prepare_xy(
+        self, x_columns, y_column, fit_intercept: bool = True
+    ) -> tuple[AbstractMatrix, AbstractMatrix]:
         """
         :param x_columns: list of strings
         Specify the column names for the features in the data.
@@ -38,43 +51,53 @@ class AbstractProcessor(abc.ABC):
         """
         pass
 
-    def prepare_x(self, x_columns):
+    def prepare_x(self, x_columns) -> AbstractMatrix:
         return self.prepare_xy(x_columns, x_columns[0], False)[0]
 
     @abc.abstractmethod
-    def run_query(self, query):
+    def run_query(self, query: str) -> np.ndarray | None:
         pass
 
 
 class DataFrameProcessor(AbstractProcessor):
-    def __init__(self, data: pd.DataFrame):
+    def __init__(self, data: pd.DataFrame) -> None:
         if not isinstance(data, pd.DataFrame):
             logging.info("data is an instance of %s", type(data))
         self.data = data
 
-    def prepare_xy(self, x_columns, y_column, fit_intercept=True):
+    def prepare_xy(
+        self, x_columns, y_column, fit_intercept: bool = True
+    ) -> tuple[NumpyMatrix, NumpyMatrix]:
         x = self.data[x_columns].values
         if fit_intercept:
             x = np.insert(x, 0, 1.0, axis=1)
         y = self.data[y_column].values
         return NumpyMatrix(x), NumpyMatrix(y)
 
-    def run_query(self, query):
+    def run_query(self, query: str) -> None:
         pass
 
 
 class DatabaseProcessor(AbstractProcessor):
-    def __init__(self, connection, table_name, database=None, filters=None):
+    def __init__(
+        self,
+        connection: str | sqlalchemy.engine.Connectable | sqlite3.Connection | None,
+        table_name: str,
+        database: str | None = None,
+        filters: Mapping[str, Iterable[Scalar]] | None = None,
+    ) -> None:
         self.connection = connection
         self.table_name = table_name
         self.database = database
         self.filters = {} if filters is None else filters
 
-    def run_query(self, query):
+    def run_query(self, query: str) -> np.ndarray:
         df = pd.read_sql(query, self.connection)
         return df.values[0, :]
 
-    def prepare_xy(self, x_columns, y_column, fit_intercept=True):
+    def prepare_xy(
+        self, x_columns, y_column, fit_intercept: bool = True
+    ) -> tuple[SqlMatrix, SqlMatrix]:
         x_columns = [sqlalchemy.Column(j, sqlalchemy.Float) for j in x_columns]
         y_column = sqlalchemy.Column(y_column, sqlalchemy.Float)
         filters_columns = {}
