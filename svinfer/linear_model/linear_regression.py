@@ -31,7 +31,15 @@ class LinearRegressionCoefficients:
     You should not call this class directly.
     """
 
-    def __init__(self, n: int, xtx, xty, yty, x_s2, df_corrected: bool = True) -> None:
+    def __init__(
+        self,
+        n: int,
+        xtx: np.ndarray,
+        xty: np.ndarray,
+        yty: float | None,
+        x_s2: Sequence[float],
+        df_corrected: bool = True,
+    ) -> None:
         if xtx.shape[0] != xtx.shape[1]:
             raise ValueError("xtx should be square matrix!")
         if xtx.shape[0] != xty.shape[0]:
@@ -92,7 +100,9 @@ class LinearRegressionCoefficients:
             logging.warning("negative residual variance!")
         self.sigma_sq = sigma_sq
 
-    def estimate_all(self):
+    def estimate_all(
+        self,
+    ) -> tuple[np.ndarray | None, float | None, np.ndarray | None]:
         self.estimate_beta()
         self.estimate_residual_var()
         return self.beta, self.sigma_sq, self.omega
@@ -107,12 +117,12 @@ class LinearRegressionVariance:
     def __init__(
         self,
         n: int,
-        xtx,
-        xty,
-        yty,
-        sigma_sq,
+        xtx: np.ndarray,
+        xty: np.ndarray,
+        yty: float,
+        sigma_sq: float | None,
         omega,
-        x_s2,
+        x_s2: Sequence[float],
         n_replications: int = 500,
         random_state: int | None = None,
     ) -> None:
@@ -127,7 +137,7 @@ class LinearRegressionVariance:
         self.random_state = random_state
         self.k = self.xtx.shape[0]
 
-    def estimate_vcov_xx_xx(self, k, l, j, m):
+    def estimate_vcov_xx_xx(self, k: int, l: int, j: int, m: int) -> float:
         return (
             self.omega[k, l] * self.x_s2[j] * (j == m)
             + self.omega[k, m] * self.x_s2[j] * (j == l)
@@ -137,18 +147,18 @@ class LinearRegressionVariance:
             + self.x_s2[k] * (k == m) * self.x_s2[j] * (j == l)
         ) / self.n
 
-    def estimate_vcov_xy_xy(self, k, j):
+    def estimate_vcov_xy_xy(self, k: int, j: int) -> float:
         return (
             self.sigma_sq * self.omega[k, j] + self.x_s2[k] * (k == j) * self.yty
         ) / self.n
 
-    def estimate_vcov_xy_xx(self, k, j, m):
+    def estimate_vcov_xy_xx(self, k: int, j: int, m: int) -> float:
         return (
             self.x_s2[k] * (k == m) * self.xty[j]
             + self.x_s2[k] * (k == j) * self.xty[m]
         ) / self.n
 
-    def simulate_distribution(self):
+    def simulate_distribution(self) -> tuple[np.ndarray, np.ndarray]:
         index = np.triu_indices(self.k)
         t = np.concatenate((self.xtx[index], self.xty), axis=0)
 
@@ -172,7 +182,9 @@ class LinearRegressionVariance:
 
         return t, v_t
 
-    def transform_vector_to_matrix(self, sample):
+    def transform_vector_to_matrix(
+        self, sample: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         k = self.k
         d = k * (k + 1) // 2
         xty = sample[d:]
@@ -182,7 +194,7 @@ class LinearRegressionVariance:
         xtx[(j, i)] = xtx[(i, j)]
         return xtx, xty
 
-    def simulate_beta_vcov(self):
+    def simulate_beta_vcov(self) -> np.ndarray:
         t, v_t = self.simulate_distribution()
         np.random.seed(self.random_state)
         t_samples = np.random.multivariate_normal(
@@ -255,7 +267,9 @@ class LinearRegression:
         self.beta_vcov = None
         self.beta_standarderror = None
 
-    def _preprocess_data(self, data: AbstractProcessor):
+    def _preprocess_data(
+        self, data: AbstractProcessor
+    ) -> tuple[int, np.ndarray, np.ndarray, float]:
         logging.info("data is an instance of %s", type(data))
         x, y = data.prepare_xy(self.x_columns, self.y_column, self.fit_intercept)
         z = get_result(
