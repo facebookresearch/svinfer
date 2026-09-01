@@ -17,12 +17,18 @@ from __future__ import annotations
 # limitations under the License.
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy import optimize
 
 from ..processor.commons import AbstractProcessor
 from ..processor.matrix import get_result
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from ..processor.matrix import AbstractMatrix
 
 
 class LogisticRegression:
@@ -38,7 +44,7 @@ class LogisticRegression:
         x_columns,
         y_column,
         x_s2,
-        fit_intercept=True,
+        fit_intercept: bool = True,
     ) -> None:
         self.x_columns = x_columns
         self.y_column = y_column
@@ -51,7 +57,13 @@ class LogisticRegression:
         self.beta_standarderror = None
 
     @staticmethod
-    def _score(beta, x, y, x_s2, query_runner):
+    def _score(
+        beta: np.ndarray,
+        x: AbstractMatrix,
+        y: AbstractMatrix,
+        x_s2: np.ndarray,
+        query_runner: Callable[[str], np.ndarray | None],
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         score(beta) = avg_{i = 1}^{n} (y_i - p_i(beta)) c_i(beta)
         where p_i(beta) = (1 + exp(-c_i(beta)^T beta))^{-1},
@@ -90,7 +102,13 @@ class LogisticRegression:
         return score, jacobian
 
     @staticmethod
-    def _meat(beta, x, y, x_s2, query_runner):
+    def _meat(
+        beta: np.ndarray,
+        x: AbstractMatrix,
+        y: AbstractMatrix,
+        x_s2: np.ndarray,
+        query_runner: Callable[[str], np.ndarray | None],
+    ) -> tuple[np.ndarray, int | np.number]:
         c = x + (y - 0.5).outer(x_s2 * beta)
         score = c * (y - 1.0 / (1.0 + (-c.dot(beta)).exp()))
         meat = score.cross(score)
@@ -105,7 +123,12 @@ class LogisticRegression:
         return meat, sample_size
 
     @staticmethod
-    def _get_coefficients(x, y, x_s2, query_runner):
+    def _get_coefficients(
+        x: AbstractMatrix,
+        y: AbstractMatrix,
+        x_s2: np.ndarray,
+        query_runner: Callable[[str], np.ndarray | None],
+    ) -> tuple[np.ndarray, bool]:
         naive = optimize.root(
             LogisticRegression._score,
             np.zeros(x_s2.shape),
@@ -129,7 +152,13 @@ class LogisticRegression:
         return beta_est, success
 
     @staticmethod
-    def _get_covariance(beta, x, y, x_s2, query_runner):
+    def _get_covariance(
+        beta: np.ndarray,
+        x: AbstractMatrix,
+        y: AbstractMatrix,
+        x_s2: np.ndarray,
+        query_runner: Callable[[str], np.ndarray | None],
+    ) -> np.ndarray:
         meat, n = LogisticRegression._meat(beta, x, y, x_s2, query_runner)
         jacobian = LogisticRegression._score(beta, x, y, x_s2, query_runner)[1]
         bread = np.linalg.inv(jacobian)
