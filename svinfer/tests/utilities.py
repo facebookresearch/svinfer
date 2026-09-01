@@ -14,12 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from scipy import special, stats
 
 
-def simulate_test_data(n=100000, seed=0):
+def simulate_test_data(n: int = 100000, seed: int = 0) -> pd.DataFrame:
     """
     A simulation setting from the following paper https://gking.harvard.edu/dpd
     The z1, z2 are features,
@@ -43,7 +47,9 @@ def simulate_test_data(n=100000, seed=0):
     )
 
 
-def simulate_test_data_misspecified_model(n=100000, seed=123):
+def simulate_test_data_misspecified_model(
+    n: int = 100000, seed: int = 123
+) -> pd.DataFrame:
     """
     A simulation setting with mis-specified model
         The non-noisy and correctly specified model is y_binary ~ z1_squared + z2_squared
@@ -78,6 +84,11 @@ def simulate_test_data_misspecified_model(n=100000, seed=123):
     )
 
 
-def check_if_almost_equal(x1, x2, absolute_tolerance=1e-12, relative_tolerance=1e-12):
+def check_if_almost_equal(
+    x1: Any,
+    x2: Any,
+    absolute_tolerance: float = 1e-12,
+    relative_tolerance: float = 1e-12,
+) -> np.bool_:
     # logic: absolute(x1 - x2) <= (absolute_tolerance + relative_tolerance * absolute(x2))
     return np.isclose(x1, x2, rtol=relative_tolerance, atol=absolute_tolerance).all()
